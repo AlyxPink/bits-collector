@@ -9,7 +9,7 @@
   let { pixel, size = 'normal' }: Props = $props();
 
   function getPixelClasses(pixel: StreamPixel | null): string {
-    const sizeClasses = size === 'small' ? 'w-1.5 h-1.5' : 'w-2 h-2';
+    const sizeClasses = size === 'small' ? 'w-2 h-2' : 'w-2.5 h-2.5';
     
     if (!pixel) {
       return `${sizeClasses} border border-gray-800/50 bg-gray-950/50 transition-all duration-100`;

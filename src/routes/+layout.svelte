@@ -44,8 +44,6 @@
 	<title>Bits Collector</title>
 </svelte:head>
 
-<div class="min-h-screen flex flex-col items-center justify-center p-4">
-	<div class="w-full max-w-6xl">
-		{@render children?.()}
-	</div>
+<div class="min-h-screen">
+	{@render children?.()}
 </div>

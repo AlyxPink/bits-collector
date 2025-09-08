@@ -4,7 +4,7 @@
 
 <button
   {onclick}
-  class="fixed top-4 right-4 font-mono uppercase tracking-wider border-2 rounded transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 border-gray-500 text-gray-400 bg-gray-900/50 hover:bg-gray-800/50 hover:text-green-400 hover:border-green-500 p-2 z-40"
+  class="font-mono uppercase tracking-wider border-2 rounded transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 border-gray-500 text-gray-400 bg-gray-900/50 hover:bg-gray-800/50 hover:text-green-400 hover:border-green-500 p-2"
   title="Settings"
   aria-label="Open settings menu"
 >

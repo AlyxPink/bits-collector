@@ -1,5 +1,6 @@
 <script lang="ts">
   import { exportSave, importSave, resetGame, getSavePreview } from '$lib/stores/saveManager';
+  import { audio } from '$lib/stores/audio';
   
   export let isOpen = false;
   
@@ -121,6 +122,15 @@
       <!-- Content -->
       {#if !showResetConfirm}
         <div class="space-y-4">
+          <!-- Sound Toggle -->
+          <button
+            onclick={() => audio.toggleSound()}
+            class="w-full font-mono uppercase tracking-wider border-2 rounded transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95 bg-gray-900/50 border-gray-500 text-gray-400 hover:bg-gray-800/50 hover:text-green-400 hover:border-green-500 py-3"
+          >
+            <span class="text-lg">{$audio.enabled ? '🔊' : '🔇'} Sound: {$audio.enabled ? 'ON' : 'OFF'}</span>
+            <span class="block text-xs opacity-75 mt-1">Toggle game sound effects</span>
+          </button>
+          
           <!-- Export Save -->
           <button
             onclick={handleExport}

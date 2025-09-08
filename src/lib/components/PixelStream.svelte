@@ -8,18 +8,60 @@
   
   let pixelMatrix = $state(pixelStream.getPixelMatrix());
   let stats = $state(pixelStream.getStats());
+  let containerRef: HTMLElement | undefined;
   
   // Animation loop with manual updates
   let animationFrame: number;
   
   onMount(() => {
+    // Calculate optimal columns based on container width
+    const updateColumns = () => {
+      if (!containerRef) return;
+      const containerWidth = containerRef.clientWidth;
+      
+      // More accurate calculation:
+      // w-2 = 8px pixel width (will update PixelCell)
+      // gap-1 = 4px gap between pixels
+      // p-2 = 8px padding each side = 16px total
+      const pixelWidth = 8;  // w-2
+      const gapWidth = 4;    // gap-1 between pixels  
+      const padding = 16;    // p-2 on container
+      
+      // Each pixel takes pixelWidth + gapWidth (except last one)
+      const pixelTotalWidth = pixelWidth + gapWidth;
+      const availableWidth = containerWidth - padding;
+      const columns = Math.max(5, Math.floor(availableWidth / pixelTotalWidth));
+      
+      pixelStream.setMatrixDimensions(columns);
+    };
+
+    // Set up ResizeObserver to watch container size changes
+    let resizeObserver: ResizeObserver | null = null;
+    
+    // Wait a tick for DOM to be fully mounted
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && containerRef) {
+        updateColumns(); // Initial calculation
+        
+        resizeObserver = new ResizeObserver(updateColumns);
+        resizeObserver.observe(containerRef);
+      }
+    }, 0);
+
+    // Animation loop with manual updates
     function animate() {
-      // Manually update the matrix and stats every frame
       pixelMatrix = pixelStream.getPixelMatrix();
       stats = pixelStream.getStats();
       animationFrame = requestAnimationFrame(animate);
     }
     animationFrame = requestAnimationFrame(animate);
+
+    // Cleanup function
+    return () => {
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
   });
   
   onDestroy(() => {
@@ -30,18 +72,7 @@
 </script>
 
 {#if $ownedBitsBuyers.length > 0}
-  <!-- Desktop version -->
-  <div class="fixed top-20 right-4 w-80 bg-black/80 border-2 border-green-500/50 rounded-lg overflow-hidden backdrop-blur-sm shadow-lg shadow-green-500/20 lg:block hidden">
-    <StreamHeader 
-      pixelsPerSecond={stats.pixelsPerSecond} 
-      speedMultiplier={$totalSpeedMultiplier} 
-    />
-    <PixelMatrix pixels={pixelMatrix} size="normal" />
-    <ColorStats colorDistribution={stats.colorDistribution} />
-  </div>
-  
-  <!-- Mobile/Tablet version -->
-  <div class="relative w-full max-w-sm mx-auto mt-8 bg-black/80 border-2 border-green-500/50 rounded-lg overflow-hidden backdrop-blur-sm shadow-lg shadow-green-500/20 lg:hidden">
+  <div bind:this={containerRef} class="w-full bg-black/50 border border-green-500/30 rounded-lg overflow-hidden backdrop-blur-sm">
     <StreamHeader 
       pixelsPerSecond={stats.pixelsPerSecond} 
       speedMultiplier={$totalSpeedMultiplier} 

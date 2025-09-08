@@ -14,7 +14,7 @@ export interface PixelStreamState {
   nextId: number;
 }
 
-const MATRIX_WIDTH = 30;
+let MATRIX_WIDTH = 30; // Dynamic width, will be updated by component
 const MATRIX_HEIGHT = 10;
 const PIXEL_LIFETIME = 3000; // 3 seconds in milliseconds
 
@@ -128,6 +128,11 @@ function createPixelStreamStore() {
     // Clear all pixels (for testing or reset)
     clear: () => {
       update(state => ({ ...state, pixels: [] }));
+    },
+
+    // Set matrix dimensions for responsive display
+    setMatrixDimensions: (width: number) => {
+      MATRIX_WIDTH = Math.max(5, width); // Minimum 5 columns, no maximum
     },
 
     // Get stream statistics

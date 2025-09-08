@@ -11,7 +11,7 @@
   let { pixels, size = 'normal', class: className = '' }: Props = $props();
 
   const matrixHeight = size === 'small' ? 'h-[100px]' : 'h-[120px]';
-  const rowGap = size === 'small' ? 'gap-0' : 'gap-0.5';
+  const rowGap = size === 'small' ? 'gap-1' : 'gap-1.5';
   const rowHeight = size === 'small' ? 'h-[9px]' : 'h-[10px]';
 </script>
 

@@ -5,11 +5,25 @@
   import WhitePixelDisplay from '$lib/components/WhitePixelDisplay.svelte';
   import UpgradesSection from '$lib/components/UpgradesSection.svelte';
   import AutoBuyIndicator from '$lib/components/AutoBuyIndicator.svelte';
+  import SettingsButton from '$lib/components/SettingsButton.svelte';
+  import SettingsModal from '$lib/components/SettingsModal.svelte';
   import { pixels } from '$lib/stores/pixels';
   import { audio } from '$lib/stores/audio';
+  
+  let settingsModalOpen = false;
+  
+  function openSettings() {
+    settingsModalOpen = true;
+  }
 </script>
 
 <div class="space-y-8">
+  <!-- Settings Button -->
+  <SettingsButton onclick={openSettings} />
+  
+  <!-- Settings Modal -->
+  <SettingsModal bind:isOpen={settingsModalOpen} />
+  
   <!-- Auto-buy Indicator -->
   <AutoBuyIndicator />
   

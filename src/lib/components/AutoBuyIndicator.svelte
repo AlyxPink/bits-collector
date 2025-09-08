@@ -30,7 +30,7 @@
 </script>
 
 {#if $ownedBitsBuyers.length > 0}
-  <div class="fixed top-4 right-4 flex items-center gap-2 bg-black/50 px-3 py-2 rounded-lg border border-green-500/30">
+  <div class="fixed top-4 left-4 flex items-center gap-2 bg-black/50 px-3 py-2 rounded-lg border border-green-500/30">
     <div class="relative">
       <div class="w-3 h-3 rounded-full {colorClasses[flashColor]} {isActive ? 'animate-ping' : ''} shadow-lg"></div>
       {#if isActive}

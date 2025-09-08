@@ -3,11 +3,16 @@
   import PixelButton from '$lib/components/PixelButton.svelte';
   import ConvertButton from '$lib/components/ConvertButton.svelte';
   import WhitePixelDisplay from '$lib/components/WhitePixelDisplay.svelte';
+  import UpgradesSection from '$lib/components/UpgradesSection.svelte';
+  import AutoBuyIndicator from '$lib/components/AutoBuyIndicator.svelte';
   import { pixels } from '$lib/stores/pixels';
   import { audio } from '$lib/stores/audio';
 </script>
 
 <div class="space-y-8">
+  <!-- Auto-buy Indicator -->
+  <AutoBuyIndicator />
+  
   <!-- Game Header -->
   <GameHeader />
   
@@ -28,6 +33,13 @@
     <ConvertButton />
   </div>
 
+  <!-- Upgrades Section -->
+  {#if $pixels.white > 0}
+    <div class="mt-12 mb-8">
+      <UpgradesSection />
+    </div>
+  {/if}
+
   <!-- Audio Controls -->
   <div class="fixed bottom-4 right-4 space-y-2">
     <button
@@ -43,6 +55,7 @@
     <p class="text-green-400 uppercase tracking-wider font-bold">Instructions:</p>
     <p>Click the colored pixel buttons to collect RGB pixels</p>
     <p>When you have at least 1 of each color, manually convert them to a WHITE pixel</p>
-    <p class="text-yellow-400">The grind is real - everything starts manual!</p>
+    <p class="text-cyan-400">Use white pixels to purchase auto-buyers and powerups!</p>
+    <p class="text-yellow-400">Auto-buyers collect bits automatically, powerups multiply all rates!</p>
   </div>
 </div>

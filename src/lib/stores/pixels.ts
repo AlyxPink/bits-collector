@@ -37,6 +37,7 @@ function createPixelStore() {
 
   return {
     subscribe,
+    update,
     addPixel: (color: 'red' | 'green' | 'blue') => {
       update(counts => ({
         ...counts,

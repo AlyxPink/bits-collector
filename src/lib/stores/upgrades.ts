@@ -343,6 +343,12 @@ export const ownedBitsBuyers = derived(
   $upgrades => Object.values($upgrades.bitsBuyers).filter(buyer => buyer.owned)
 );
 
+export const hasUnlockedUpgrades = derived(
+  upgrades,
+  $upgrades => Object.values($upgrades.bitsBuyers).some(buyer => buyer.owned) ||
+    Object.values($upgrades.powerups).some(powerup => powerup.level > 0)
+);
+
 // Auto-tick system - runs every 100ms
 if (typeof window !== 'undefined') {
   setInterval(() => {

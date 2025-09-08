@@ -8,6 +8,7 @@
   import SettingsButton from '$lib/components/SettingsButton.svelte';
   import SettingsModal from '$lib/components/SettingsModal.svelte';
   import { pixels } from '$lib/stores/pixels';
+  import { hasUnlockedUpgrades } from '$lib/stores/upgrades';
   import { audio } from '$lib/stores/audio';
   
   let settingsModalOpen = false;
@@ -48,7 +49,7 @@
   </div>
 
   <!-- Upgrades Section -->
-  {#if $pixels.white > 0}
+  {#if $pixels.white > 0 || $hasUnlockedUpgrades}
     <div class="mt-12 mb-8">
       <UpgradesSection />
     </div>

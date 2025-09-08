@@ -13,21 +13,14 @@ export interface SaveData {
 
 function encodeSave(data: SaveData): string {
   const jsonString = JSON.stringify(data);
-  // Convert to base64
-  if (typeof window !== 'undefined') {
-    return btoa(jsonString);
-  }
-  return Buffer.from(jsonString).toString('base64');
+  // Convert to base64 (browser only since this is client-side)
+  return btoa(jsonString);
 }
 
 function decodeSave(encodedData: string): SaveData | null {
   try {
-    let jsonString: string;
-    if (typeof window !== 'undefined') {
-      jsonString = atob(encodedData);
-    } else {
-      jsonString = Buffer.from(encodedData, 'base64').toString();
-    }
+    // Decode from base64 (browser only since this is client-side)
+    const jsonString = atob(encodedData);
     
     const data = JSON.parse(jsonString);
     

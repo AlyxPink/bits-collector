@@ -28,6 +28,7 @@ export interface UpgradeState {
   bitsBuyers: Record<string, BitsBuyerUpgrade>;
   powerups: Record<string, PowerupUpgrade>;
   lastAutoTick: number;
+  bitAccumulator: Record<string, number>;
 }
 
 const DEFAULT_BITS_BUYERS: Record<string, BitsBuyerUpgrade> = {
@@ -111,11 +112,19 @@ const DEFAULT_POWERUPS: Record<string, PowerupUpgrade> = {
 };
 
 function loadUpgrades(): UpgradeState {
+  const defaultAccumulator = {
+    redAutoBuy: 0,
+    greenAutoBuy: 0,
+    blueAutoBuy: 0,
+    randomAutoBuy: 0
+  };
+
   if (typeof window === 'undefined') {
     return {
       bitsBuyers: { ...DEFAULT_BITS_BUYERS },
       powerups: { ...DEFAULT_POWERUPS },
-      lastAutoTick: Date.now()
+      lastAutoTick: Date.now(),
+      bitAccumulator: { ...defaultAccumulator }
     };
   }
 
@@ -127,13 +136,15 @@ function loadUpgrades(): UpgradeState {
       return {
         bitsBuyers: { ...DEFAULT_BITS_BUYERS, ...parsed.bitsBuyers },
         powerups: { ...DEFAULT_POWERUPS, ...parsed.powerups },
-        lastAutoTick: parsed.lastAutoTick || Date.now()
+        lastAutoTick: parsed.lastAutoTick || Date.now(),
+        bitAccumulator: { ...defaultAccumulator, ...parsed.bitAccumulator }
       };
     } catch {
       return {
         bitsBuyers: { ...DEFAULT_BITS_BUYERS },
         powerups: { ...DEFAULT_POWERUPS },
-        lastAutoTick: Date.now()
+        lastAutoTick: Date.now(),
+        bitAccumulator: { ...defaultAccumulator }
       };
     }
   }
@@ -141,7 +152,8 @@ function loadUpgrades(): UpgradeState {
   return {
     bitsBuyers: { ...DEFAULT_BITS_BUYERS },
     powerups: { ...DEFAULT_POWERUPS },
-    lastAutoTick: Date.now()
+    lastAutoTick: Date.now(),
+    bitAccumulator: { ...defaultAccumulator }
   };
 }
 
@@ -291,9 +303,14 @@ function createUpgradesStore() {
             }, 1);
             
             const effectiveRate = rate * multiplier;
-            const bitsToAdd = Math.floor(effectiveRate * deltaTime);
+            // Add fractional bits to accumulator
+            state.bitAccumulator[buyer.id] += effectiveRate * deltaTime;
             
+            // Convert whole bits from accumulator
+            const bitsToAdd = Math.floor(state.bitAccumulator[buyer.id]);
             if (bitsToAdd > 0) {
+              state.bitAccumulator[buyer.id] -= bitsToAdd; // Remove whole bits, keep fractional
+              
               if (buyer.color === 'random') {
                 // Random color selection
                 const colors: ('red' | 'green' | 'blue')[] = ['red', 'green', 'blue'];

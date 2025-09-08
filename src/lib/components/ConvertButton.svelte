@@ -54,8 +54,8 @@
     {$canConvert 
       ? 'border-white text-white bg-white/10 hover:bg-white/20 animate-pulse-glow cursor-pointer' 
       : 'border-gray-700 text-gray-600 bg-gray-900/50 cursor-not-allowed opacity-50'}
-    {isConverting ? 'animate-pixel-pop' : ''}"
-  style="--shadow-color: 255, 255, 255"
+    {isConverting ? 'animate-pixel-pop' : ''} 
+    {$canConvert ? 'shadow-lg shadow-white/50' : ''}"
   tabindex="0"
 >
   <div class="flex flex-col items-center gap-2">

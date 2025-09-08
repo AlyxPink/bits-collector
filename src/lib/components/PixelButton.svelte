@@ -19,10 +19,10 @@
     blue: 'border-blue-500 text-blue-400 bg-blue-500/10 hover:bg-blue-500/20'
   };
   
-  const shadowColors = {
-    red: '239, 68, 68',
-    green: '34, 197, 94',
-    blue: '59, 130, 246'
+  const shadowClasses = {
+    red: 'shadow-red-500/50',
+    green: 'shadow-green-500/50', 
+    blue: 'shadow-blue-500/50'
   };
   
   function handleClick(event?: MouseEvent) {
@@ -77,8 +77,7 @@
   bind:this={buttonElement}
   onclick={handleClick}
   onkeydown={handleKeyDown}
-  class="pixel-button {colorClasses[color]} {isClicking ? 'animate-pixel-pop' : ''}"
-  style="--shadow-color: {shadowColors[color]}"
+  class="pixel-button {colorClasses[color]} {shadowClasses[color]} shadow-lg {isClicking ? 'animate-pixel-pop' : ''}"
   tabindex="0"
 >
   <div class="flex flex-col items-center gap-2">

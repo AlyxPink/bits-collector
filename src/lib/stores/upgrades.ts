@@ -184,21 +184,6 @@ function createUpgradesStore() {
       return Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
     },
     
-    canAffordBitsBuyer: (id: string): boolean => {
-      const state = get({ subscribe });
-      const pixelCount = get(pixels);
-      const cost = Math.floor(state.bitsBuyers[id].baseCost * Math.pow(state.bitsBuyers[id].costMultiplier, state.bitsBuyers[id].level));
-      return pixelCount.white >= cost;
-    },
-    
-    canAffordPowerup: (id: string): boolean => {
-      const state = get({ subscribe });
-      const pixelCount = get(pixels);
-      const upgrade = state.powerups[id];
-      if (upgrade.level >= upgrade.maxLevel) return false;
-      const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
-      return pixelCount.white >= cost;
-    },
     
     purchaseBitsBuyer: (id: string): boolean => {
       const state = get({ subscribe });

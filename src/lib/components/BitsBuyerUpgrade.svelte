@@ -1,5 +1,6 @@
 <script lang="ts">
   import { upgrades, totalSpeedMultiplier, type BitsBuyerUpgrade } from '$lib/stores/upgrades';
+  import { pixels } from '$lib/stores/pixels';
   import { audio } from '$lib/stores/audio';
   import { upgradeColorToVariant } from '$lib/utils/colors';
   import GameCard from '$lib/components/ui/GameCard.svelte';
@@ -13,7 +14,7 @@
   let isPurchasing = $state(false);
   
   let cost = $derived(upgrades.getBitsBuyerCost(upgrade.id));
-  let canAfford = $derived(upgrades.canAffordBitsBuyer(upgrade.id));
+  let canAfford = $derived($pixels.white >= cost);
   let currentRate = $derived(upgrades.getAutoBuyRate(upgrade.id));
   let nextLevelRate = $derived(upgrade.baseRate * (upgrade.level + 1) * $totalSpeedMultiplier);
   let cardVariant = $derived(upgradeColorToVariant(upgrade.color));

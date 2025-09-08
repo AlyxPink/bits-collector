@@ -5,6 +5,7 @@
   import WhitePixelDisplay from '$lib/components/WhitePixelDisplay.svelte';
   import UpgradesSection from '$lib/components/UpgradesSection.svelte';
   import AutoBuyIndicator from '$lib/components/AutoBuyIndicator.svelte';
+  import PixelStream from '$lib/components/PixelStream.svelte';
   import SettingsButton from '$lib/components/SettingsButton.svelte';
   import SettingsModal from '$lib/components/SettingsModal.svelte';
   import { pixels } from '$lib/stores/pixels';
@@ -27,6 +28,9 @@
   
   <!-- Auto-buy Indicator -->
   <AutoBuyIndicator />
+  
+  <!-- Pixel Stream Visualizer -->
+  <PixelStream />
   
   <!-- Game Header -->
   <GameHeader />

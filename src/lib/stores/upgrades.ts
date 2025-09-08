@@ -1,5 +1,6 @@
 import { writable, derived, get } from 'svelte/store';
 import { pixels } from './pixels';
+import { pixelStream } from './pixelStream';
 
 export interface BitsBuyerUpgrade {
   id: string;
@@ -296,18 +297,29 @@ function createUpgradesStore() {
             if (bitsToAdd > 0) {
               state.bitAccumulator[buyer.id] -= bitsToAdd; // Remove whole bits, keep fractional
               
+              // Track pixels for stream visualization
+              const streamPixels: ('red' | 'green' | 'blue')[] = [];
+              
               if (buyer.color === 'random') {
                 // Random color selection
                 const colors: ('red' | 'green' | 'blue')[] = ['red', 'green', 'blue'];
                 for (let i = 0; i < bitsToAdd; i++) {
                   const randomColor = colors[Math.floor(Math.random() * 3)];
                   pixels.addPixel(randomColor);
+                  streamPixels.push(randomColor);
                 }
               } else {
                 // Specific color
+                const color = buyer.color as 'red' | 'green' | 'blue';
                 for (let i = 0; i < bitsToAdd; i++) {
-                  pixels.addPixel(buyer.color as 'red' | 'green' | 'blue');
+                  pixels.addPixel(color);
+                  streamPixels.push(color);
                 }
+              }
+              
+              // Add pixels to stream visualization
+              if (streamPixels.length > 0) {
+                pixelStream.addPixels(streamPixels);
               }
             }
           }

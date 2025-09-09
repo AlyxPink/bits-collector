@@ -20,7 +20,7 @@ function openSettings() {
 <SettingsModal bind:isOpen={settingsModalOpen} />
 
 <!-- Main Game Layout - CSS Grid -->
-<div class="min-h-[calc(100vh-4rem)] grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5">
+<div class="min-h-screen grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5">
   <!-- Widgets Area (20% - 1/5, 33% on tablet) -->
   <div class="md:col-span-1 lg:col-span-1 min-h-[33vh] md:min-h-full border-b md:border-b-0 md:border-r lg:border-r border-green-500/20">
     <WidgetsArea />

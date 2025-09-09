@@ -1,12 +1,45 @@
 <script lang="ts">
   import { pixels } from "$lib/stores/pixels";
+  import { mixedColorsUnlocked, pureColorsUnlocked } from "$lib/stores/compositeColors";
   import PixelButton from "./PixelButton.svelte";
   import ConvertButton from "./ConvertButton.svelte";
   import WhitePixelDisplay from "./WhitePixelDisplay.svelte";
+  import MixedColorsTab from "./MixedColorsTab.svelte";
+  import PureColorsTab from "./PureColorsTab.svelte";
 
-  let activeTab = $state<"pixels">("pixels");
+  let activeTab = $state<"rgb" | "mixed" | "pure">("rgb");
 
-  const tabs = [{ id: "pixels" as const, label: "Pixels", icon: "⬛" }];
+  // Tab configuration with unlock requirements
+  let tabs = $derived([
+    { 
+      id: "rgb" as const, 
+      label: "RGB", 
+      iconType: "squares" as const,
+      unlocked: true 
+    },
+    { 
+      id: "mixed" as const, 
+      label: "Mixed", 
+      iconType: "gradient" as const,
+      unlocked: $mixedColorsUnlocked,
+      requirement: 25
+    },
+    { 
+      id: "pure" as const, 
+      label: "Pure", 
+      iconType: "diamond" as const,
+      unlocked: $pureColorsUnlocked,
+      requirement: 50
+    }
+  ]);
+
+  // Switch to RGB tab if current tab becomes locked
+  $effect(() => {
+    const currentTab = tabs.find(t => t.id === activeTab);
+    if (currentTab && !currentTab.unlocked) {
+      activeTab = "rgb";
+    }
+  });
 </script>
 
 <div class="h-full flex">
@@ -16,47 +49,56 @@
   >
     {#each tabs as tab}
       <button
-        onclick={() => (activeTab = tab.id)}
-        class="h-16 flex flex-col items-center justify-center border-b border-green-500/10 transition-all duration-200 hover:bg-green-500/10
-               {activeTab === tab.id
-          ? 'bg-green-500/20 border-r-2 border-r-green-400 text-green-400'
-          : 'text-gray-400 hover:text-green-400'}"
+        onclick={() => tab.unlocked && (activeTab = tab.id)}
+        disabled={!tab.unlocked}
+        class="h-16 flex flex-col items-center justify-center border-b border-green-500/10 transition-all duration-200 p-2
+               {tab.unlocked
+          ? activeTab === tab.id
+            ? 'bg-green-500/20 border-r-2 border-r-green-400 text-green-400'
+            : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10 cursor-pointer'
+          : 'text-gray-600 opacity-50 cursor-not-allowed'}"
       >
-        <div class="text-lg mb-1">{tab.icon}</div>
+        <div class="mb-1">
+          {#if tab.unlocked}
+            {#if tab.iconType === "squares"}
+              <!-- RGB squares icon -->
+              <div class="flex gap-0.5">
+                <div class="w-1.5 h-1.5 bg-red-500 rounded-sm"></div>
+                <div class="w-1.5 h-1.5 bg-green-500 rounded-sm"></div>
+                <div class="w-1.5 h-1.5 bg-blue-500 rounded-sm"></div>
+              </div>
+            {:else if tab.iconType === "gradient"}
+              <!-- Mixed gradient circle -->
+              <div class="w-4 h-4 rounded-full bg-gradient-to-br from-red-500 via-green-500 to-blue-500"></div>
+            {:else if tab.iconType === "diamond"}
+              <!-- Pure diamond shape -->
+              <div class="w-4 h-4 bg-gradient-to-br from-red-600 to-blue-600 transform rotate-45 rounded-sm"></div>
+            {/if}
+          {:else}
+            <!-- Lock icon -->
+            <div class="w-4 h-4 bg-gray-600 rounded border border-gray-500 flex items-center justify-center">
+              <div class="w-1 h-1 bg-gray-400 rounded-full"></div>
+            </div>
+          {/if}
+        </div>
         <div
-          class="text-xs font-bold uppercase tracking-wider leading-none text-center"
+          class="text-xs font-bold uppercase tracking-wider leading-none text-center mb-1"
         >
           {tab.label}
         </div>
+        
+        {#if !tab.unlocked && tab.requirement}
+          <div class="text-xs opacity-75 text-center">
+            <div class="text-yellow-400">{$pixels.lifetimeWhite}/{tab.requirement}</div>
+          </div>
+        {/if}
       </button>
     {/each}
-
-    <!-- Future tab placeholders -->
-    <div
-      class="h-16 flex flex-col items-center justify-center border-b border-green-500/10 text-gray-600 opacity-50"
-    >
-      <div class="text-lg mb-1">❓</div>
-      <div
-        class="text-xs font-bold uppercase tracking-wider leading-none text-center"
-      >
-        Soon
-      </div>
-    </div>
-    <div
-      class="h-16 flex flex-col items-center justify-center border-b border-green-500/10 text-gray-600 opacity-50"
-    >
-      <div class="text-lg mb-1">❓</div>
-      <div
-        class="text-xs font-bold uppercase tracking-wider leading-none text-center"
-      >
-        Soon
-      </div>
-    </div>
   </div>
 
   <!-- Content Area -->
   <div class="flex-1 p-6">
-    {#if activeTab === "pixels"}
+    {#if activeTab === "rgb"}
       <div class="h-full flex flex-col justify-center items-center gap-8">
         <h2
           class="text-2xl font-bold uppercase tracking-wider text-green-400 glow-text mb-4"
@@ -88,8 +130,15 @@
           </p>
           <p>Click RGB buttons to collect colored pixels</p>
           <p>Convert sets of R+G+B into WHITE pixels</p>
+          {#if !$mixedColorsUnlocked}
+            <p class="text-yellow-400 mt-2">Get 25 lifetime ⚪ to unlock Mixed Colors!</p>
+          {/if}
         </div>
       </div>
+    {:else if activeTab === "mixed"}
+      <MixedColorsTab />
+    {:else if activeTab === "pure"}
+      <PureColorsTab />
     {/if}
   </div>
 </div>

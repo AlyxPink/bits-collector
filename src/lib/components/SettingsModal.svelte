@@ -1,93 +1,102 @@
 <script lang="ts">
-  import { exportSave, importSave, resetGame, getSavePreview } from '$lib/stores/saveManager';
-  import { audio } from '$lib/stores/audio';
-  
-  export let isOpen = false;
-  
-  let fileInput: HTMLInputElement;
-  let message = '';
-  let messageType: 'success' | 'error' | '' = '';
-  let showResetConfirm = false;
-  let previewText = '';
-  
-  function handleExport() {
-    exportSave();
-    showMessage('Save exported successfully!', 'success');
-  }
-  
-  function handleImportClick() {
-    fileInput.click();
-  }
-  
-  async function handleFileSelect(event: Event) {
-    const target = event.target as HTMLInputElement;
-    const file = target.files?.[0];
-    
-    if (!file) return;
-    
-    try {
-      const content = await file.text();
-      
-      // Show preview
-      const preview = getSavePreview(content);
-      if (!preview) {
-        showMessage('Invalid save file!', 'error');
-        return;
-      }
-      
-      previewText = preview;
-      
-      // Confirm import
-      if (confirm(`Import this save?\n\n${preview}\n\nThis will overwrite your current progress!`)) {
-        const success = importSave(content);
-        if (success) {
-          showMessage('Save imported successfully! Reloading...', 'success');
-        } else {
-          showMessage('Failed to import save!', 'error');
-        }
-      }
-    } catch (error) {
-      showMessage('Error reading file!', 'error');
-    }
-    
-    // Reset file input
-    target.value = '';
-  }
-  
-  function handleResetClick() {
-    showResetConfirm = true;
-  }
-  
-  function confirmReset() {
-    resetGame();
-    showMessage('Game reset! Reloading...', 'success');
-  }
-  
-  function cancelReset() {
-    showResetConfirm = false;
-  }
-  
-  function showMessage(text: string, type: 'success' | 'error') {
-    message = text;
-    messageType = type;
-    setTimeout(() => {
-      message = '';
-      messageType = '';
-    }, 3000);
-  }
-  
-  function closeModal() {
-    isOpen = false;
-    showResetConfirm = false;
-    message = '';
-    messageType = '';
-  }
-  
-  function handleBackdropClick(event: MouseEvent) {
-    if (event.target === event.currentTarget) {
-      closeModal();
-    }
-  }
+import {
+	exportSave,
+	importSave,
+	resetGame,
+	getSavePreview,
+} from "$lib/stores/saveManager";
+import { audio } from "$lib/stores/audio";
+
+export let isOpen = false;
+
+let fileInput: HTMLInputElement;
+let message = "";
+let messageType: "success" | "error" | "" = "";
+let showResetConfirm = false;
+let previewText = "";
+
+function handleExport() {
+	exportSave();
+	showMessage("Save exported successfully!", "success");
+}
+
+function handleImportClick() {
+	fileInput.click();
+}
+
+async function handleFileSelect(event: Event) {
+	const target = event.target as HTMLInputElement;
+	const file = target.files?.[0];
+
+	if (!file) return;
+
+	try {
+		const content = await file.text();
+
+		// Show preview
+		const preview = getSavePreview(content);
+		if (!preview) {
+			showMessage("Invalid save file!", "error");
+			return;
+		}
+
+		previewText = preview;
+
+		// Confirm import
+		if (
+			confirm(
+				`Import this save?\n\n${preview}\n\nThis will overwrite your current progress!`,
+			)
+		) {
+			const success = importSave(content);
+			if (success) {
+				showMessage("Save imported successfully! Reloading...", "success");
+			} else {
+				showMessage("Failed to import save!", "error");
+			}
+		}
+	} catch (error) {
+		showMessage("Error reading file!", "error");
+	}
+
+	// Reset file input
+	target.value = "";
+}
+
+function handleResetClick() {
+	showResetConfirm = true;
+}
+
+function confirmReset() {
+	resetGame();
+	showMessage("Game reset! Reloading...", "success");
+}
+
+function cancelReset() {
+	showResetConfirm = false;
+}
+
+function showMessage(text: string, type: "success" | "error") {
+	message = text;
+	messageType = type;
+	setTimeout(() => {
+		message = "";
+		messageType = "";
+	}, 3000);
+}
+
+function closeModal() {
+	isOpen = false;
+	showResetConfirm = false;
+	message = "";
+	messageType = "";
+}
+
+function handleBackdropClick(event: MouseEvent) {
+	if (event.target === event.currentTarget) {
+		closeModal();
+	}
+}
 </script>
 
 {#if isOpen}

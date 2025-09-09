@@ -1,62 +1,72 @@
 @import "tailwindcss";
 
 @layer base {
-  body {
-    @apply bg-gray-950 text-green-400 font-mono;
-    background-image:
-      repeating-linear-gradient(0deg,
-        rgba(0, 255, 0, 0.03),
-        rgba(0, 255, 0, 0.03) 1px,
-        transparent 1px,
-        transparent 2px);
-  }
+	body {
+		@apply bg-gray-950 text-green-400 font-mono;
+		background-image: repeating-linear-gradient(
+			0deg,
+			rgba(0, 255, 0, 0.03),
+			rgba(0, 255, 0, 0.03) 1px,
+			transparent 1px,
+			transparent 2px
+		);
+	}
 }
 
 @layer components {
-  .pixel-button {
-    @apply relative px-6 py-4 border-2 font-bold text-lg uppercase tracking-wider transition-all duration-200;
-    @apply hover:scale-110 active:scale-95;
-    box-shadow: 0 0 20px rgba(var(--shadow-color), 0.5);
-  }
+	.pixel-button {
+		@apply relative px-6 py-4 border-2 font-bold text-lg uppercase tracking-wider transition-all duration-200;
+		@apply hover:scale-110 active:scale-95;
+		box-shadow: 0 0 20px rgba(var(--shadow-color), 0.5);
+	}
 
-  .pixel-button:hover {
-    box-shadow: 0 0 30px rgba(var(--shadow-color), 0.8);
-  }
+	.pixel-button:hover {
+		box-shadow: 0 0 30px rgba(var(--shadow-color), 0.8);
+	}
 
-  .pixel-button:active {
-    box-shadow: 0 0 40px rgba(var(--shadow-color), 1);
-  }
+	.pixel-button:active {
+		box-shadow: 0 0 40px rgba(var(--shadow-color), 1);
+	}
 
-  .matrix-border {
-    @apply border-2 border-green-500/50 bg-black/50 backdrop-blur-sm;
-    box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
-  }
+	.matrix-border {
+		@apply border-2 border-green-500/50 bg-black/50 backdrop-blur-sm;
+		box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
+	}
 
-  .glow-text {
-    text-shadow: 0 0 10px currentColor;
-  }
+	.glow-text {
+		text-shadow: 0 0 10px currentColor;
+	}
 
-  /* Custom game-specific animations that can't be replaced with Tailwind */
-  @keyframes animate-pixel-pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
-  }
-  
-  @keyframes animate-pulse-glow {
-    0%, 100% { 
-      box-shadow: 0 0 10px currentColor; 
-    }
-    50% { 
-      box-shadow: 0 0 20px currentColor, 0 0 30px currentColor; 
-    }
-  }
-  
-  .animate-pixel-pop {
-    animation: animate-pixel-pop 0.3s ease-out;
-  }
-  
-  .animate-pulse-glow {
-    animation: animate-pulse-glow 1s ease-in-out infinite;
-  }
+	/* Custom game-specific animations that can't be replaced with Tailwind */
+	@keyframes animate-pixel-pop {
+		0% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.1);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+
+	@keyframes animate-pulse-glow {
+		0%,
+		100% {
+			box-shadow: 0 0 10px currentColor;
+		}
+		50% {
+			box-shadow:
+				0 0 20px currentColor,
+				0 0 30px currentColor;
+		}
+	}
+
+	.animate-pixel-pop {
+		animation: animate-pixel-pop 0.3s ease-out;
+	}
+
+	.animate-pulse-glow {
+		animation: animate-pulse-glow 1s ease-in-out infinite;
+	}
 }

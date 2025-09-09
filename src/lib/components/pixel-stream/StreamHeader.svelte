@@ -1,10 +1,10 @@
 <script lang="ts">
-  interface Props {
-    pixelsPerSecond: number;
-    speedMultiplier: number;
-  }
+interface Props {
+	pixelsPerSecond: number;
+	speedMultiplier: number;
+}
 
-  let { pixelsPerSecond, speedMultiplier }: Props = $props();
+let { pixelsPerSecond, speedMultiplier }: Props = $props();
 </script>
 
 <div class="flex justify-between items-center px-4 py-2 bg-green-500/10 border-b border-green-500/30">

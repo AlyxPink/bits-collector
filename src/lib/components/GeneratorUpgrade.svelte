@@ -1,51 +1,60 @@
 <script lang="ts">
-  import { upgrades, totalSpeedMultiplier, type GeneratorUpgrade } from '$lib/stores/upgrades';
-  import { pixels } from '$lib/stores/pixels';
-  import { audio } from '$lib/stores/audio';
-  import { upgradeColorToVariant } from '$lib/utils/colors';
-  import GameCard from '$lib/components/ui/GameCard.svelte';
-  import GameButton from '$lib/components/ui/GameButton.svelte';
-  
-  interface Props {
-    upgrade: GeneratorUpgrade;
-  }
-  
-  let { upgrade }: Props = $props();
-  let isPurchasing = $state(false);
-  
-  let cost = $derived(upgrades.getGeneratorCost(upgrade.id));
-  let canAfford = $derived($pixels.white >= cost);
-  let theoreticalRate = $derived(upgrades.getGeneratorRate(upgrade.id));
-  let effectiveRate = $derived(upgrades.getEffectiveGeneratorRate(upgrade.id));
-  let nextLevelTheoretical = $derived(upgrade.baseRate * (upgrade.level + 1) * $totalSpeedMultiplier);
-  let efficiency = $derived(upgrades.getProductionEfficiency());
-  let nextLevelEffective = $derived(nextLevelTheoretical * efficiency);
-  let cardVariant = $derived(upgradeColorToVariant(upgrade.color));
-  
-  // Efficiency color coding
-  let efficiencyColor = $derived(
-    efficiency >= 0.8 ? 'text-green-400' :
-    efficiency >= 0.5 ? 'text-yellow-400' :
-    efficiency >= 0.25 ? 'text-orange-400' :
-    'text-red-400'
-  );
-  
-  function handlePurchase() {
-    if (!canAfford || isPurchasing) return;
-    
-    isPurchasing = true;
-    const success = upgrades.purchaseGenerator(upgrade.id);
-    
-    if (success) {
-      audio.playPixelSound('green'); // Success sound
-    } else {
-      audio.playPixelSound('red'); // Failure sound
-    }
-    
-    setTimeout(() => {
-      isPurchasing = false;
-    }, 300);
-  }
+import {
+	upgrades,
+	totalSpeedMultiplier,
+	type GeneratorUpgrade,
+} from "$lib/stores/upgrades";
+import { pixels } from "$lib/stores/pixels";
+import { audio } from "$lib/stores/audio";
+import { upgradeColorToVariant } from "$lib/utils/colors";
+import GameCard from "$lib/components/ui/GameCard.svelte";
+import GameButton from "$lib/components/ui/GameButton.svelte";
+
+interface Props {
+	upgrade: GeneratorUpgrade;
+}
+
+let { upgrade }: Props = $props();
+let isPurchasing = $state(false);
+
+let cost = $derived(upgrades.getGeneratorCost(upgrade.id));
+let canAfford = $derived($pixels.white >= cost);
+let theoreticalRate = $derived(upgrades.getGeneratorRate(upgrade.id));
+let effectiveRate = $derived(upgrades.getEffectiveGeneratorRate(upgrade.id));
+let nextLevelTheoretical = $derived(
+	upgrade.baseRate * (upgrade.level + 1) * $totalSpeedMultiplier,
+);
+let efficiency = $derived(upgrades.getProductionEfficiency());
+let nextLevelEffective = $derived(nextLevelTheoretical * efficiency);
+let cardVariant = $derived(upgradeColorToVariant(upgrade.color));
+
+// Efficiency color coding
+let efficiencyColor = $derived(
+	efficiency >= 0.8
+		? "text-green-400"
+		: efficiency >= 0.5
+			? "text-yellow-400"
+			: efficiency >= 0.25
+				? "text-orange-400"
+				: "text-red-400",
+);
+
+function handlePurchase() {
+	if (!canAfford || isPurchasing) return;
+
+	isPurchasing = true;
+	const success = upgrades.purchaseGenerator(upgrade.id);
+
+	if (success) {
+		audio.playPixelSound("green"); // Success sound
+	} else {
+		audio.playPixelSound("red"); // Failure sound
+	}
+
+	setTimeout(() => {
+		isPurchasing = false;
+	}, 300);
+}
 </script>
 
 <GameCard variant={cardVariant} animated={isPurchasing}>

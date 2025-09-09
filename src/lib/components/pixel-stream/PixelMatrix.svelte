@@ -1,18 +1,18 @@
 <script lang="ts">
-  import type { StreamPixel } from '$lib/stores/pixelStream';
-  import PixelCell from './PixelCell.svelte';
+import type { StreamPixel } from "$lib/stores/pixelStream";
+import PixelCell from "./PixelCell.svelte";
 
-  interface Props {
-    pixels: (StreamPixel | null)[][];
-    size?: 'small' | 'normal';
-    class?: string;
-  }
+interface Props {
+	pixels: (StreamPixel | null)[][];
+	size?: "small" | "normal";
+	class?: string;
+}
 
-  let { pixels, size = 'normal', class: className = '' }: Props = $props();
+let { pixels, size = "normal", class: className = "" }: Props = $props();
 
-  const matrixHeight = size === 'small' ? 'h-[100px]' : 'h-[120px]';
-  const rowGap = size === 'small' ? 'gap-1' : 'gap-1.5';
-  const rowHeight = size === 'small' ? 'h-[9px]' : 'h-[10px]';
+const matrixHeight = size === "small" ? "h-[100px]" : "h-[120px]";
+const rowGap = size === "small" ? "gap-1" : "gap-1.5";
+const rowHeight = size === "small" ? "h-[9px]" : "h-[10px]";
 </script>
 
 <div class="relative p-2 {matrixHeight} {className}">

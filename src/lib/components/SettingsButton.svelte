@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let onclick: () => void;
+export let onclick: () => void;
 </script>
 
 <button

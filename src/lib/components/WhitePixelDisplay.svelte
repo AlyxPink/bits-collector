@@ -1,9 +1,9 @@
 <script lang="ts">
-  interface Props {
-    count: number;
-  }
-  
-  let { count }: Props = $props();
+interface Props {
+	count: number;
+}
+
+let { count }: Props = $props();
 </script>
 
 <div class="matrix-border p-6 text-center">

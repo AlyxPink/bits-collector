@@ -1,48 +1,47 @@
 <script lang="ts">
-  import { pixels, canConvert } from '$lib/stores/pixels';
-  import { gameStats } from '$lib/stores/game';
-  import { audio } from '$lib/stores/audio';
-  import { inputController } from '$lib/stores/inputController';
-  
-  let isConverting = $state(false);
-  let buttonElement: HTMLButtonElement;
-  
-  function handleConvert(event?: MouseEvent) {
-    // Check if this click should be allowed (prevents held mouse button spam)
-    if (event && !inputController.isMouseClickAllowed(event.button)) {
-      return; // Block held mouse button spam
-    }
-    
-    if ($canConvert) {
-      pixels.convertToWhite();
-      gameStats.incrementConversions();
-      audio.playConvertSound();
-      
-      // Trigger animation
-      isConverting = true;
-      setTimeout(() => {
-        isConverting = false;
-      }, 500);
-    }
-  }
-  
-  function handleKeyDown(event: KeyboardEvent) {
-    const key = event.key.toLowerCase();
-    
-    // Handle Enter, Space, and 'C' for Convert
-    if (key === 'enter' || key === ' ' || key === 'c') {
-      // Check if this key press is allowed (not held down)
-      if (inputController.isKeyPressAllowed(key)) {
-        event.preventDefault();
-        handleConvert();
-      } else {
-        // Block held key spam
-        event.preventDefault();
-        event.stopPropagation();
-      }
-    }
-  }
-  
+import { pixels, canConvert } from "$lib/stores/pixels";
+import { gameStats } from "$lib/stores/game";
+import { audio } from "$lib/stores/audio";
+import { inputController } from "$lib/stores/inputController";
+
+let isConverting = $state(false);
+let buttonElement: HTMLButtonElement;
+
+function handleConvert(event?: MouseEvent) {
+	// Check if this click should be allowed (prevents held mouse button spam)
+	if (event && !inputController.isMouseClickAllowed(event.button)) {
+		return; // Block held mouse button spam
+	}
+
+	if ($canConvert) {
+		pixels.convertToWhite();
+		gameStats.incrementConversions();
+		audio.playConvertSound();
+
+		// Trigger animation
+		isConverting = true;
+		setTimeout(() => {
+			isConverting = false;
+		}, 500);
+	}
+}
+
+function handleKeyDown(event: KeyboardEvent) {
+	const key = event.key.toLowerCase();
+
+	// Handle Enter, Space, and 'C' for Convert
+	if (key === "enter" || key === " " || key === "c") {
+		// Check if this key press is allowed (not held down)
+		if (inputController.isKeyPressAllowed(key)) {
+			event.preventDefault();
+			handleConvert();
+		} else {
+			// Block held key spam
+			event.preventDefault();
+			event.stopPropagation();
+		}
+	}
+}
 </script>
 
 <button

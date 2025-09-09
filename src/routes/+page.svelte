@@ -1,16 +1,16 @@
 <script lang="ts">
-  import NavigationBar from '$lib/components/NavigationBar.svelte';
-  import WidgetsArea from '$lib/components/WidgetsArea.svelte';
-  import GrindingArea from '$lib/components/GrindingArea.svelte';
-  import BuyingArea from '$lib/components/BuyingArea.svelte';
-  import SettingsModal from '$lib/components/SettingsModal.svelte';
-  import { audio } from '$lib/stores/audio';
-  
-  let settingsModalOpen = false;
-  
-  function openSettings() {
-    settingsModalOpen = true;
-  }
+import NavigationBar from "$lib/components/NavigationBar.svelte";
+import WidgetsArea from "$lib/components/WidgetsArea.svelte";
+import GrindingArea from "$lib/components/GrindingArea.svelte";
+import BuyingArea from "$lib/components/BuyingArea.svelte";
+import SettingsModal from "$lib/components/SettingsModal.svelte";
+import { audio } from "$lib/stores/audio";
+
+let settingsModalOpen = false;
+
+function openSettings() {
+	settingsModalOpen = true;
+}
 </script>
 
 <!-- Navigation Bar -->

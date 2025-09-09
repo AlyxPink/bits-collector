@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { gameStats } from '$lib/stores/game';
+import { gameStats } from "$lib/stores/game";
 </script>
 
 <header class="text-center mb-8">

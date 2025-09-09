@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { pixels } from "$lib/stores/pixels";
-  import PixelButton from "./PixelButton.svelte";
-  import ConvertButton from "./ConvertButton.svelte";
-  import WhitePixelDisplay from "./WhitePixelDisplay.svelte";
+import { pixels } from "$lib/stores/pixels";
+import PixelButton from "./PixelButton.svelte";
+import ConvertButton from "./ConvertButton.svelte";
+import WhitePixelDisplay from "./WhitePixelDisplay.svelte";
 
-  let activeTab = $state<"pixels">("pixels");
+let activeTab = $state<"pixels">("pixels");
 
-  const tabs = [{ id: "pixels" as const, label: "Pixels", icon: "⬛" }];
+const tabs = [{ id: "pixels" as const, label: "Pixels", icon: "⬛" }];
 </script>
 
 <div class="h-full flex">

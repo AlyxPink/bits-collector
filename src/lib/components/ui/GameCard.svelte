@@ -1,25 +1,30 @@
 <script lang="ts">
-  import { getColorClasses, getShadowStyle, getHoverShadowStyle, type ColorVariant } from '$lib/utils/colors';
-  
-  interface Props {
-    variant: ColorVariant;
-    animated?: boolean;
-    hoverable?: boolean;
-    class?: string;
-    children?: any;
-  }
-  
-  let { 
-    variant, 
-    animated = false, 
-    hoverable = true, 
-    class: className = '',
-    children 
-  }: Props = $props();
-  
-  let colorClasses = $derived(getColorClasses(variant));
-  let shadowStyle = $derived(getShadowStyle(variant));
-  let hoverShadowStyle = $derived(getHoverShadowStyle(variant));
+import {
+	getColorClasses,
+	getShadowStyle,
+	getHoverShadowStyle,
+	type ColorVariant,
+} from "$lib/utils/colors";
+
+interface Props {
+	variant: ColorVariant;
+	animated?: boolean;
+	hoverable?: boolean;
+	class?: string;
+	children?: any;
+}
+
+let {
+	variant,
+	animated = false,
+	hoverable = true,
+	class: className = "",
+	children,
+}: Props = $props();
+
+let colorClasses = $derived(getColorClasses(variant));
+let shadowStyle = $derived(getShadowStyle(variant));
+let hoverShadowStyle = $derived(getHoverShadowStyle(variant));
 </script>
 
 <div 

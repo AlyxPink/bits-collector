@@ -1,13 +1,13 @@
 <script lang="ts">
-  interface Props {
-    colorDistribution: {
-      red: number;
-      green: number;
-      blue: number;
-    };
-  }
+interface Props {
+	colorDistribution: {
+		red: number;
+		green: number;
+		blue: number;
+	};
+}
 
-  let { colorDistribution }: Props = $props();
+let { colorDistribution }: Props = $props();
 </script>
 
 <div class="px-4 py-2 bg-gray-900/50 border-t border-green-500/20">

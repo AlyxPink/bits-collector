@@ -1,41 +1,47 @@
 <script lang="ts">
-  import { upgrades, type PowerupUpgrade } from '$lib/stores/upgrades';
-  import { pixels } from '$lib/stores/pixels';
-  import { audio } from '$lib/stores/audio';
-  import { type ColorVariant } from '$lib/utils/colors';
-  import GameCard from '$lib/components/ui/GameCard.svelte';
-  import GameButton from '$lib/components/ui/GameButton.svelte';
-  
-  interface Props {
-    upgrade: PowerupUpgrade;
-  }
-  
-  let { upgrade }: Props = $props();
-  let isPurchasing = $state(false);
-  
-  let cost = $derived(upgrades.getPowerupCost(upgrade.id));
-  let canAfford = $derived($pixels.white >= cost && upgrade.level < upgrade.maxLevel);
-  let isMaxLevel = $derived(upgrade.level >= upgrade.maxLevel);
-  let currentMultiplier = $derived(upgrade.level > 0 ? Math.pow(upgrade.multiplier, upgrade.level) : 1);
-  let nextMultiplier = $derived(Math.pow(upgrade.multiplier, upgrade.level + 1));
-  let cardVariant = $derived(isMaxLevel ? 'green' as ColorVariant : 'yellow' as ColorVariant);
-  
-  function handlePurchase() {
-    if (!canAfford || isPurchasing || isMaxLevel) return;
-    
-    isPurchasing = true;
-    const success = upgrades.purchasePowerup(upgrade.id);
-    
-    if (success) {
-      audio.playPixelSound('green'); // Success sound
-    } else {
-      audio.playPixelSound('red'); // Failure sound
-    }
-    
-    setTimeout(() => {
-      isPurchasing = false;
-    }, 300);
-  }
+import { upgrades, type PowerupUpgrade } from "$lib/stores/upgrades";
+import { pixels } from "$lib/stores/pixels";
+import { audio } from "$lib/stores/audio";
+import { type ColorVariant } from "$lib/utils/colors";
+import GameCard from "$lib/components/ui/GameCard.svelte";
+import GameButton from "$lib/components/ui/GameButton.svelte";
+
+interface Props {
+	upgrade: PowerupUpgrade;
+}
+
+let { upgrade }: Props = $props();
+let isPurchasing = $state(false);
+
+let cost = $derived(upgrades.getPowerupCost(upgrade.id));
+let canAfford = $derived(
+	$pixels.white >= cost && upgrade.level < upgrade.maxLevel,
+);
+let isMaxLevel = $derived(upgrade.level >= upgrade.maxLevel);
+let currentMultiplier = $derived(
+	upgrade.level > 0 ? Math.pow(upgrade.multiplier, upgrade.level) : 1,
+);
+let nextMultiplier = $derived(Math.pow(upgrade.multiplier, upgrade.level + 1));
+let cardVariant = $derived(
+	isMaxLevel ? ("green" as ColorVariant) : ("yellow" as ColorVariant),
+);
+
+function handlePurchase() {
+	if (!canAfford || isPurchasing || isMaxLevel) return;
+
+	isPurchasing = true;
+	const success = upgrades.purchasePowerup(upgrade.id);
+
+	if (success) {
+		audio.playPixelSound("green"); // Success sound
+	} else {
+		audio.playPixelSound("red"); // Failure sound
+	}
+
+	setTimeout(() => {
+		isPurchasing = false;
+	}, 300);
+}
 </script>
 
 <GameCard variant={cardVariant} animated={isPurchasing}>

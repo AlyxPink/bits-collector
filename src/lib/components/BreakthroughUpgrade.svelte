@@ -1,36 +1,36 @@
 <script lang="ts">
-  import { upgrades, type BreakthroughUpgrade } from '$lib/stores/upgrades';
-  import { pixels } from '$lib/stores/pixels';
-  import { audio } from '$lib/stores/audio';
-  import GameCard from '$lib/components/ui/GameCard.svelte';
-  import GameButton from '$lib/components/ui/GameButton.svelte';
-  
-  interface Props {
-    breakthrough: BreakthroughUpgrade;
-  }
-  
-  let { breakthrough }: Props = $props();
-  let isPurchasing = $state(false);
-  
-  let cost = $derived(upgrades.getBreakthroughCost(breakthrough.id));
-  let canAfford = $derived($pixels.white >= cost && !breakthrough.purchased);
-  
-  function handlePurchase() {
-    if (!canAfford || isPurchasing) return;
-    
-    isPurchasing = true;
-    const success = upgrades.purchaseBreakthrough(breakthrough.id);
-    
-    if (success) {
-      audio.playPixelSound('green'); // Success sound
-    } else {
-      audio.playPixelSound('red'); // Failure sound
-    }
-    
-    setTimeout(() => {
-      isPurchasing = false;
-    }, 300);
-  }
+import { upgrades, type BreakthroughUpgrade } from "$lib/stores/upgrades";
+import { pixels } from "$lib/stores/pixels";
+import { audio } from "$lib/stores/audio";
+import GameCard from "$lib/components/ui/GameCard.svelte";
+import GameButton from "$lib/components/ui/GameButton.svelte";
+
+interface Props {
+	breakthrough: BreakthroughUpgrade;
+}
+
+let { breakthrough }: Props = $props();
+let isPurchasing = $state(false);
+
+let cost = $derived(upgrades.getBreakthroughCost(breakthrough.id));
+let canAfford = $derived($pixels.white >= cost && !breakthrough.purchased);
+
+function handlePurchase() {
+	if (!canAfford || isPurchasing) return;
+
+	isPurchasing = true;
+	const success = upgrades.purchaseBreakthrough(breakthrough.id);
+
+	if (success) {
+		audio.playPixelSound("green"); // Success sound
+	} else {
+		audio.playPixelSound("red"); // Failure sound
+	}
+
+	setTimeout(() => {
+		isPurchasing = false;
+	}, 300);
+}
 </script>
 
 <GameCard variant="purple" animated={isPurchasing}>

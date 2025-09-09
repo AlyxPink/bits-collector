@@ -1,6 +1,6 @@
 <script lang="ts">
-  import GeneratorIndicator from './GeneratorIndicator.svelte';
-  import PixelStream from './PixelStream.svelte';
+import GeneratorIndicator from "./GeneratorIndicator.svelte";
+import PixelStream from "./PixelStream.svelte";
 </script>
 
 <div class="h-full bg-black/10 border-r border-green-500/20 p-4 space-y-6">

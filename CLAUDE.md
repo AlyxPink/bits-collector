@@ -48,9 +48,10 @@ The game uses Svelte stores for reactive state management with localStorage pers
   - Handles RGB pixel collection and conversion to white pixels
   - Provides `canConvert` derived store for UI reactivity
 
-- **`upgrades.ts`**: Auto-buyers and powerup systems
-  - BitsBuyers: Automated pixel collectors with levels and rates
+- **`upgrades.ts`**: Generators, powerups, and breakthrough systems
+  - Generators: Automated pixel collectors with levels and rates
   - Powerups: Multiplicative speed boosts
+  - Breakthroughs: Upgrades that overcome production soft caps
   - Accumulator system for fractional bit collection
   - Auto-tick runs every 100ms
 
@@ -72,10 +73,11 @@ src/lib/components/
 ├── PixelButton.svelte     # RGB pixel clicker buttons
 ├── ConvertButton.svelte   # RGB to white conversion
 ├── WhitePixelDisplay.svelte # White pixel counter display
-├── UpgradesSection.svelte # Upgrade shop container
-├── BitsBuyerUpgrade.svelte # Auto-buyer purchase UI
+├── BuyingArea.svelte      # Main upgrade interface with tabs
+├── GeneratorUpgrade.svelte # Generator purchase UI
 ├── PowerupUpgrade.svelte  # Speed multiplier purchase UI
-├── AutoBuyIndicator.svelte # Active auto-buyers display
+├── BreakthroughUpgrade.svelte # Breakthrough upgrade UI
+├── GeneratorIndicator.svelte # Active generators display
 ├── SettingsModal.svelte   # Game settings dialog
 └── GameHeader.svelte      # Title and stats display
 ```
@@ -83,17 +85,21 @@ src/lib/components/
 ### Game Mechanics
 
 1. **Core Loop**: Click RGB buttons → Collect 1+ of each color → Convert to white pixel
-2. **Progression**: White pixels → Purchase auto-buyers → Generate bits automatically
-3. **Multipliers**: Powerups multiply all auto-buyer rates exponentially
-4. **Accumulator System**: Fractional bits accumulate over time to handle sub-1 rates
+2. **Progression**: White pixels → Purchase generators → Generate bits automatically
+3. **Soft Caps**: Production efficiency decreases at high rates (10, 100, 1000 bits/sec thresholds)
+4. **Breakthroughs**: Overcome soft caps by purchasing breakthrough upgrades
+5. **Multipliers**: Powerups multiply all generator rates exponentially
+6. **Accumulator System**: Fractional bits accumulate over time to handle sub-1 rates
 
 ### Key Implementation Details
 
 - All stores auto-save to localStorage on changes
 - The game handles tab/window inactivity by calculating delta time
 - Bit accumulator prevents loss of fractional bits between ticks
-- Random auto-buyer distributes bits evenly across RGB colors
+- Random generator distributes bits evenly across RGB colors
 - Powerup multipliers stack multiplicatively (2x * 5x = 10x)
+- Soft cap system uses fractional powers to reduce production efficiency at high rates
+- Breakthrough upgrades extend soft cap thresholds by multiplicative factors
 
 ### Deployment Configuration
 

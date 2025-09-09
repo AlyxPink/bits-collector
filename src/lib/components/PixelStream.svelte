@@ -1,6 +1,6 @@
 <script lang="ts">
   import { pixelStream } from '$lib/stores/pixelStream';
-  import { ownedBitsBuyers, totalSpeedMultiplier } from '$lib/stores/upgrades';
+  import { ownedGenerators, totalSpeedMultiplier } from '$lib/stores/upgrades';
   import StreamHeader from './pixel-stream/StreamHeader.svelte';
   import PixelMatrix from './pixel-stream/PixelMatrix.svelte';
   import ColorStats from './pixel-stream/ColorStats.svelte';
@@ -71,7 +71,7 @@
   });
 </script>
 
-{#if $ownedBitsBuyers.length > 0}
+{#if $ownedGenerators.length > 0}
   <div bind:this={containerRef} class="w-full bg-black/50 border border-green-500/30 rounded-lg overflow-hidden backdrop-blur-sm">
     <StreamHeader 
       pixelsPerSecond={stats.pixelsPerSecond} 

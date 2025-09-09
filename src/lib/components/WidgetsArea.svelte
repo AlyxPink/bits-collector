@@ -1,5 +1,5 @@
 <script lang="ts">
-  import AutoBuyIndicator from './AutoBuyIndicator.svelte';
+  import GeneratorIndicator from './GeneratorIndicator.svelte';
   import PixelStream from './PixelStream.svelte';
 </script>
 
@@ -12,12 +12,12 @@
     <div class="w-12 h-px bg-green-500/50 mx-auto"></div>
   </div>
   
-  <!-- Auto-buy Indicator Widget -->
+  <!-- Generator Indicator Widget -->
   <div class="bg-black/30 rounded-lg p-4 border border-green-500/30">
     <h3 class="text-sm font-bold uppercase tracking-wider text-cyan-400 mb-3 text-center">
-      Auto-buyers Status
+      Generator Status
     </h3>
-    <AutoBuyIndicator />
+    <GeneratorIndicator />
   </div>
   
   <!-- Pixel Stream Widget -->

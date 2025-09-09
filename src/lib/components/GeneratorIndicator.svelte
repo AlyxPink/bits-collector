@@ -1,13 +1,21 @@
 <script lang="ts">
-  import { ownedBitsBuyers, upgrades, totalSpeedMultiplier } from '$lib/stores/upgrades';
+  import { ownedGenerators, upgrades, totalSpeedMultiplier } from '$lib/stores/upgrades';
+  
+  let efficiency = $derived(upgrades.getProductionEfficiency());
+  let efficiencyColor = $derived(
+    efficiency >= 0.8 ? 'text-green-400' :
+    efficiency >= 0.5 ? 'text-yellow-400' :
+    efficiency >= 0.25 ? 'text-orange-400' :
+    'text-red-400'
+  );
   
   let isActive = $state(false);
   let flashColor = $state<'red' | 'green' | 'blue' | 'purple'>('purple');
   
-  // Flash indicator when auto-buying happens
+  // Flash indicator when generators are active
   if (typeof window !== 'undefined') {
     setInterval(() => {
-      if ($ownedBitsBuyers.length > 0) {
+      if ($ownedGenerators.length > 0) {
         isActive = true;
         
         // Pick a random color to flash
@@ -29,7 +37,7 @@
   };
 </script>
 
-{#if $ownedBitsBuyers.length > 0}
+{#if $ownedGenerators.length > 0}
   <div class="fixed top-4 left-4 flex items-center gap-2 bg-black/50 px-3 py-2 rounded-lg border border-green-500/30">
     <div class="relative">
       <div class="w-3 h-3 rounded-full {colorClasses[flashColor]} {isActive ? 'animate-ping' : ''} shadow-lg"></div>
@@ -38,13 +46,20 @@
       {/if}
     </div>
     <span class="text-xs text-green-400 font-bold uppercase tracking-wider">
-      Auto-buying Active
+      Generators Active
     </span>
-    {#if $totalSpeedMultiplier > 1}
-      <span class="text-xs text-yellow-400 font-bold">
-        ({$totalSpeedMultiplier.toFixed(1)}x)
-      </span>
-    {/if}
+    <div class="flex items-center gap-2 text-xs">
+      {#if $totalSpeedMultiplier > 1}
+        <span class="text-yellow-400 font-bold">
+          {$totalSpeedMultiplier.toFixed(1)}x
+        </span>
+      {/if}
+      {#if efficiency < 1}
+        <span class="font-bold {efficiencyColor}">
+          {(efficiency * 100).toFixed(0)}% eff
+        </span>
+      {/if}
+    </div>
   </div>
 {/if}
 

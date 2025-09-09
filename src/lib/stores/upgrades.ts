@@ -2,7 +2,7 @@ import { writable, derived, get } from 'svelte/store';
 import { pixels } from './pixels';
 import { pixelStream } from './pixelStream';
 
-export interface BitsBuyerUpgrade {
+export interface GeneratorUpgrade {
   id: string;
   name: string;
   description: string;
@@ -25,18 +25,34 @@ export interface PowerupUpgrade {
   maxLevel: number;
 }
 
+export interface SoftCapTier {
+  threshold: number;
+  power: number;
+}
+
+export interface BreakthroughUpgrade {
+  id: string;
+  name: string;
+  description: string;
+  type: 'extender' | 'efficiency' | 'multiplier';
+  effect: number;
+  baseCost: number;
+  purchased: boolean;
+}
+
 export interface UpgradeState {
-  bitsBuyers: Record<string, BitsBuyerUpgrade>;
+  generators: Record<string, GeneratorUpgrade>;
   powerups: Record<string, PowerupUpgrade>;
+  breakthroughs: Record<string, BreakthroughUpgrade>;
   lastAutoTick: number;
   bitAccumulator: Record<string, number>;
 }
 
-const DEFAULT_BITS_BUYERS: Record<string, BitsBuyerUpgrade> = {
-  redAutoBuy: {
-    id: 'redAutoBuy',
-    name: 'Red Bits Auto-buyer',
-    description: 'Automatically collects red bits',
+const DEFAULT_GENERATORS: Record<string, GeneratorUpgrade> = {
+  redGenerator: {
+    id: 'redGenerator',
+    name: 'Red Bits Generator',
+    description: 'Generates red bits over time',
     color: 'red',
     baseRate: 0.5,
     baseCost: 10,
@@ -44,10 +60,10 @@ const DEFAULT_BITS_BUYERS: Record<string, BitsBuyerUpgrade> = {
     level: 0,
     owned: false
   },
-  greenAutoBuy: {
-    id: 'greenAutoBuy',
-    name: 'Green Bits Auto-buyer',
-    description: 'Automatically collects green bits',
+  greenGenerator: {
+    id: 'greenGenerator',
+    name: 'Green Bits Generator',
+    description: 'Generates green bits over time',
     color: 'green',
     baseRate: 0.5,
     baseCost: 10,
@@ -55,10 +71,10 @@ const DEFAULT_BITS_BUYERS: Record<string, BitsBuyerUpgrade> = {
     level: 0,
     owned: false
   },
-  blueAutoBuy: {
-    id: 'blueAutoBuy',
-    name: 'Blue Bits Auto-buyer',
-    description: 'Automatically collects blue bits',
+  blueGenerator: {
+    id: 'blueGenerator',
+    name: 'Blue Bits Generator',
+    description: 'Generates blue bits over time',
     color: 'blue',
     baseRate: 0.5,
     baseCost: 10,
@@ -66,10 +82,10 @@ const DEFAULT_BITS_BUYERS: Record<string, BitsBuyerUpgrade> = {
     level: 0,
     owned: false
   },
-  randomAutoBuy: {
-    id: 'randomAutoBuy',
-    name: 'Random Bits Auto-buyer',
-    description: 'Automatically collects random RGB bits',
+  randomGenerator: {
+    id: 'randomGenerator',
+    name: 'Random Bits Generator',
+    description: 'Generates random RGB bits over time',
     color: 'random',
     baseRate: 1.0,
     baseCost: 25,
@@ -112,18 +128,112 @@ const DEFAULT_POWERUPS: Record<string, PowerupUpgrade> = {
   }
 };
 
+const DEFAULT_BREAKTHROUGHS: Record<string, BreakthroughUpgrade> = {
+  efficiency1: {
+    id: 'efficiency1',
+    name: 'Production Efficiency I',
+    description: 'Reduces first soft cap penalty (10x threshold)',
+    type: 'extender',
+    effect: 10,
+    baseCost: 100,
+    purchased: false
+  },
+  efficiency2: {
+    id: 'efficiency2',
+    name: 'Production Efficiency II',
+    description: 'Reduces second soft cap penalty (100x threshold)', 
+    type: 'extender',
+    effect: 100,
+    baseCost: 2500,
+    purchased: false
+  },
+  efficiency3: {
+    id: 'efficiency3',
+    name: 'Production Efficiency III',
+    description: 'Reduces third soft cap penalty (1000x threshold)',
+    type: 'extender',
+    effect: 1000,
+    baseCost: 50000,
+    purchased: false
+  }
+};
+
+// Soft cap configuration
+const SOFT_CAP_TIERS: SoftCapTier[] = [
+  { threshold: 10, power: 0.5 },   // First soft cap at 10 bits/sec → ^0.5 (square root)
+  { threshold: 100, power: 0.33 }, // Second soft cap at 100 bits/sec → ^0.33 (cube root)
+  { threshold: 1000, power: 0.25 } // Third soft cap at 1000 bits/sec → ^0.25 (fourth root)
+];
+
+// Soft cap calculation functions
+function applySoftCaps(production: number, breakthroughs: Record<string, BreakthroughUpgrade>): number {
+  let result = production;
+  
+  // Apply soft caps sequentially
+  for (const tier of SOFT_CAP_TIERS) {
+    // Check if breakthrough extends this threshold
+    let effectiveThreshold = tier.threshold;
+    
+    // Apply breakthrough effects (multiply threshold by effect)
+    Object.values(breakthroughs).forEach(breakthrough => {
+      if (breakthrough.purchased && breakthrough.type === 'extender') {
+        effectiveThreshold *= breakthrough.effect;
+      }
+    });
+    
+    if (result > effectiveThreshold) {
+      const excess = result - effectiveThreshold;
+      result = effectiveThreshold + Math.pow(excess, tier.power);
+    }
+  }
+  
+  return result;
+}
+
+function getProductionEfficiency(production: number, breakthroughs: Record<string, BreakthroughUpgrade>): number {
+  if (production === 0) return 1;
+  
+  const uncappedProduction = production;
+  const cappedProduction = applySoftCaps(production, breakthroughs);
+  
+  return cappedProduction / uncappedProduction;
+}
+
+function getTotalTheoreticalProduction(generators: Record<string, GeneratorUpgrade>, powerups: Record<string, PowerupUpgrade>): number {
+  let total = 0;
+  
+  // Calculate total multiplier from powerups
+  const totalMultiplier = Object.values(powerups).reduce((mult, powerup) => {
+    if (powerup.level > 0) {
+      return mult * Math.pow(powerup.multiplier, powerup.level);
+    }
+    return mult;
+  }, 1);
+  
+  // Sum all generator production (before soft caps)
+  Object.values(generators).forEach(generator => {
+    if (generator.owned && generator.level > 0) {
+      const baseRate = generator.baseRate * generator.level;
+      total += baseRate * totalMultiplier;
+    }
+  });
+  
+  return total;
+}
+
 function loadUpgrades(): UpgradeState {
   const defaultAccumulator = {
-    redAutoBuy: 0,
-    greenAutoBuy: 0,
-    blueAutoBuy: 0,
-    randomAutoBuy: 0
+    redGenerator: 0,
+    greenGenerator: 0,
+    blueGenerator: 0,
+    randomGenerator: 0
   };
 
   if (typeof window === 'undefined') {
     return {
-      bitsBuyers: { ...DEFAULT_BITS_BUYERS },
+      generators: { ...DEFAULT_GENERATORS },
       powerups: { ...DEFAULT_POWERUPS },
+      breakthroughs: { ...DEFAULT_BREAKTHROUGHS },
       lastAutoTick: Date.now(),
       bitAccumulator: { ...defaultAccumulator }
     };
@@ -135,15 +245,17 @@ function loadUpgrades(): UpgradeState {
       const parsed = JSON.parse(saved);
       // Merge with defaults to handle new upgrades
       return {
-        bitsBuyers: { ...DEFAULT_BITS_BUYERS, ...parsed.bitsBuyers },
+        generators: { ...DEFAULT_GENERATORS, ...(parsed.generators || parsed.bitsBuyers) },
         powerups: { ...DEFAULT_POWERUPS, ...parsed.powerups },
+        breakthroughs: { ...DEFAULT_BREAKTHROUGHS, ...parsed.breakthroughs },
         lastAutoTick: parsed.lastAutoTick || Date.now(),
         bitAccumulator: { ...defaultAccumulator, ...parsed.bitAccumulator }
       };
     } catch {
       return {
-        bitsBuyers: { ...DEFAULT_BITS_BUYERS },
+        generators: { ...DEFAULT_GENERATORS },
         powerups: { ...DEFAULT_POWERUPS },
+        breakthroughs: { ...DEFAULT_BREAKTHROUGHS },
         lastAutoTick: Date.now(),
         bitAccumulator: { ...defaultAccumulator }
       };
@@ -151,8 +263,9 @@ function loadUpgrades(): UpgradeState {
   }
 
   return {
-    bitsBuyers: { ...DEFAULT_BITS_BUYERS },
+    generators: { ...DEFAULT_GENERATORS },
     powerups: { ...DEFAULT_POWERUPS },
+    breakthroughs: { ...DEFAULT_BREAKTHROUGHS },
     lastAutoTick: Date.now(),
     bitAccumulator: { ...defaultAccumulator }
   };
@@ -171,9 +284,9 @@ function createUpgradesStore() {
   return {
     subscribe,
     
-    getBitsBuyerCost: (id: string): number => {
+    getGeneratorCost: (id: string): number => {
       const state = get({ subscribe });
-      const upgrade = state.bitsBuyers[id];
+      const upgrade = state.generators[id];
       if (!upgrade) return 0;
       return Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
     },
@@ -186,10 +299,10 @@ function createUpgradesStore() {
     },
     
     
-    purchaseBitsBuyer: (id: string): boolean => {
+    purchaseGenerator: (id: string): boolean => {
       const state = get({ subscribe });
       const pixelCount = get(pixels);
-      const upgrade = state.bitsBuyers[id];
+      const upgrade = state.generators[id];
       const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.costMultiplier, upgrade.level));
       
       if (pixelCount.white >= cost) {
@@ -199,8 +312,8 @@ function createUpgradesStore() {
         // Upgrade
         update(state => ({
           ...state,
-          bitsBuyers: {
-            ...state.bitsBuyers,
+          generators: {
+            ...state.generators,
             [id]: {
               ...upgrade,
               level: upgrade.level + 1,
@@ -252,9 +365,9 @@ function createUpgradesStore() {
       return multiplier;
     },
     
-    getAutoBuyRate: (id: string): number => {
+    getGeneratorRate: (id: string): number => {
       const state = get({ subscribe });
-      const upgrade = state.bitsBuyers[id];
+      const upgrade = state.generators[id];
       if (!upgrade || !upgrade.owned) return 0;
       
       const baseRate = upgrade.baseRate * upgrade.level;
@@ -271,16 +384,97 @@ function createUpgradesStore() {
       
       return baseRate * multiplier;
     },
+
+    // Breakthrough upgrade functions
+    getBreakthroughCost: (id: string): number => {
+      const state = get({ subscribe });
+      const breakthrough = state.breakthroughs[id];
+      return breakthrough ? breakthrough.baseCost : 0;
+    },
+
+    purchaseBreakthrough: (id: string): boolean => {
+      const state = get({ subscribe });
+      const pixelCount = get(pixels);
+      const breakthrough = state.breakthroughs[id];
+      
+      if (breakthrough && !breakthrough.purchased && pixelCount.white >= breakthrough.baseCost) {
+        // Deduct cost
+        pixels.update(p => ({ ...p, white: p.white - breakthrough.baseCost }));
+        
+        // Purchase breakthrough
+        update(state => ({
+          ...state,
+          breakthroughs: {
+            ...state.breakthroughs,
+            [id]: {
+              ...breakthrough,
+              purchased: true
+            }
+          }
+        }));
+        return true;
+      }
+      return false;
+    },
+
+    // Soft cap calculation functions
+    getTotalProductionRate: (): number => {
+      const state = get({ subscribe });
+      return getTotalTheoreticalProduction(state.generators, state.powerups);
+    },
+
+    getEffectiveProductionRate: (): number => {
+      const state = get({ subscribe });
+      const theoretical = getTotalTheoreticalProduction(state.generators, state.powerups);
+      return applySoftCaps(theoretical, state.breakthroughs);
+    },
+
+    getProductionEfficiency: (): number => {
+      const state = get({ subscribe });
+      const theoretical = getTotalTheoreticalProduction(state.generators, state.powerups);
+      return getProductionEfficiency(theoretical, state.breakthroughs);
+    },
+
+    getEffectiveGeneratorRate: (id: string): number => {
+      const state = get({ subscribe });
+      const upgrade = state.generators[id];
+      if (!upgrade || !upgrade.owned) return 0;
+      
+      // Get base rate for this generator
+      const baseRate = upgrade.baseRate * upgrade.level;
+      const powerupMultiplier = Object.values(state.powerups).reduce((mult, powerup) => {
+        if (powerup.level > 0) {
+          return mult * Math.pow(powerup.multiplier, powerup.level);
+        }
+        return mult;
+      }, 1);
+      
+      const theoreticalRate = baseRate * powerupMultiplier;
+      
+      // Apply soft caps proportionally
+      const totalTheoretical = getTotalTheoreticalProduction(state.generators, state.powerups);
+      const totalEffective = applySoftCaps(totalTheoretical, state.breakthroughs);
+      
+      if (totalTheoretical === 0) return 0;
+      const efficiencyRatio = totalEffective / totalTheoretical;
+      
+      return theoreticalRate * efficiencyRatio;
+    },
     
     processAutoTick: () => {
       const now = Date.now();
       update(state => {
         const deltaTime = (now - state.lastAutoTick) / 1000; // Convert to seconds
         
-        // Process each auto-buyer
-        Object.values(state.bitsBuyers).forEach(buyer => {
-          if (buyer.owned && buyer.level > 0) {
-            const rate = buyer.baseRate * buyer.level;
+        // Calculate soft cap adjusted rates
+        const totalTheoretical = getTotalTheoreticalProduction(state.generators, state.powerups);
+        const totalEffective = applySoftCaps(totalTheoretical, state.breakthroughs);
+        const efficiencyRatio = totalTheoretical > 0 ? totalEffective / totalTheoretical : 1;
+
+        // Process each generator
+        Object.values(state.generators).forEach(generator => {
+          if (generator.owned && generator.level > 0) {
+            const rate = generator.baseRate * generator.level;
             const multiplier = Object.values(state.powerups).reduce((mult, powerup) => {
               if (powerup.level > 0) {
                 return mult * Math.pow(powerup.multiplier, powerup.level);
@@ -288,19 +482,20 @@ function createUpgradesStore() {
               return mult;
             }, 1);
             
-            const effectiveRate = rate * multiplier;
+            // Apply soft cap efficiency to this generator's rate
+            const effectiveRate = (rate * multiplier) * efficiencyRatio;
             // Add fractional bits to accumulator
-            state.bitAccumulator[buyer.id] += effectiveRate * deltaTime;
+            state.bitAccumulator[generator.id] += effectiveRate * deltaTime;
             
             // Convert whole bits from accumulator
-            const bitsToAdd = Math.floor(state.bitAccumulator[buyer.id]);
+            const bitsToAdd = Math.floor(state.bitAccumulator[generator.id]);
             if (bitsToAdd > 0) {
-              state.bitAccumulator[buyer.id] -= bitsToAdd; // Remove whole bits, keep fractional
+              state.bitAccumulator[generator.id] -= bitsToAdd; // Remove whole bits, keep fractional
               
               // Track pixels for stream visualization
               const streamPixels: ('red' | 'green' | 'blue')[] = [];
               
-              if (buyer.color === 'random') {
+              if (generator.color === 'random') {
                 // Random color selection
                 const colors: ('red' | 'green' | 'blue')[] = ['red', 'green', 'blue'];
                 for (let i = 0; i < bitsToAdd; i++) {
@@ -310,7 +505,7 @@ function createUpgradesStore() {
                 }
               } else {
                 // Specific color
-                const color = buyer.color as 'red' | 'green' | 'blue';
+                const color = generator.color as 'red' | 'green' | 'blue';
                 for (let i = 0; i < bitsToAdd; i++) {
                   pixels.addPixel(color);
                   streamPixels.push(color);
@@ -350,18 +545,18 @@ export const totalSpeedMultiplier = derived(
   }
 );
 
-export const ownedBitsBuyers = derived(
+export const ownedGenerators = derived(
   upgrades,
-  $upgrades => Object.values($upgrades.bitsBuyers).filter(buyer => buyer.owned)
+  $upgrades => Object.values($upgrades.generators).filter(generator => generator.owned)
 );
 
 export const hasUnlockedUpgrades = derived(
   upgrades,
-  $upgrades => Object.values($upgrades.bitsBuyers).some(buyer => buyer.owned) ||
+  $upgrades => Object.values($upgrades.generators).some(generator => generator.owned) ||
     Object.values($upgrades.powerups).some(powerup => powerup.level > 0)
 );
 
-// Auto-tick system - runs every 100ms
+// Generator tick system - runs every 100ms
 if (typeof window !== 'undefined') {
   setInterval(() => {
     upgrades.processAutoTick();

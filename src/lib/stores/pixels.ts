@@ -12,7 +12,7 @@ function loadPixels(): PixelCounts {
   if (typeof window === 'undefined') {
     return { red: 0, green: 0, blue: 0, white: 0 };
   }
-  
+
   const saved = localStorage.getItem('pixelCounts');
   if (saved) {
     try {
@@ -29,7 +29,7 @@ function createPixelStore() {
   const { subscribe, update, set } = writable<PixelCounts>(loadPixels());
 
   // Save to localStorage whenever the store changes
-  subscribe((value) => {
+  subscribe((value: any) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('pixelCounts', JSON.stringify(value));
     }

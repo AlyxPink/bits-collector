@@ -8,7 +8,7 @@
   
   let pixelMatrix = $state(pixelStream.getPixelMatrix());
   let stats = $state(pixelStream.getStats());
-  let containerRef: HTMLElement | undefined;
+  let containerRef = $state<HTMLElement | undefined>();
   
   // Animation loop with manual updates
   let animationFrame: number;

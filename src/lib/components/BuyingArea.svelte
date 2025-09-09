@@ -7,7 +7,6 @@
     tabUnlockStatus,
   } from "$lib/stores/upgrades";
   import { pixels } from "$lib/stores/pixels";
-  import { hasUnlockedUpgrades } from "$lib/stores/upgrades";
   import GeneratorUpgrade from "./GeneratorUpgrade.svelte";
   import PowerupUpgrade from "./PowerupUpgrade.svelte";
   import BreakthroughUpgrade from "./BreakthroughUpgrade.svelte";
@@ -150,7 +149,7 @@
     </div>
 
     <!-- Content based on active tab -->
-    {#if ($pixels.white > 0 || $hasUnlockedUpgrades) && unlockStatus[activeTab]?.unlocked}
+    {#if ($pixels.white > 0 || hasAnyUpgrades) && unlockStatus[activeTab]?.unlocked}
       <div class="space-y-4">
         {#if activeTab === "generators"}
           <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -223,7 +222,7 @@
       >
         <div class="text-green-400 mb-4">🔒</div>
 
-        {#if $pixels.white === 0 && !$hasUnlockedUpgrades}
+        {#if $pixels.white === 0 && !hasAnyUpgrades}
           <!-- Initial state: no upgrades unlocked yet -->
           <h3 class="text-xl font-bold text-green-400 mb-3">Upgrades Locked</h3>
           <p class="text-sm opacity-75 leading-relaxed">

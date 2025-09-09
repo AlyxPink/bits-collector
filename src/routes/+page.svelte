@@ -4,7 +4,6 @@ import WidgetsArea from "$lib/components/WidgetsArea.svelte";
 import GrindingArea from "$lib/components/GrindingArea.svelte";
 import BuyingArea from "$lib/components/BuyingArea.svelte";
 import SettingsModal from "$lib/components/SettingsModal.svelte";
-import { audio } from "$lib/stores/audio";
 
 let settingsModalOpen = false;
 

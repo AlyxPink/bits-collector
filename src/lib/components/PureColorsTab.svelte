@@ -3,7 +3,6 @@
   import CompositeColorButton from "./CompositeColorButton.svelte";
 
   let pureColorsList = $derived($pureColors);
-  let hasAnyPureColors = $derived(pureColorsList.some(color => color.count > 0));
 </script>
 
 <div class="h-full flex flex-col justify-center items-center gap-8">

@@ -1,10 +1,9 @@
 <script lang="ts">
-  import { mixedColors, totalCompositeCount } from "$lib/stores/compositeColors";
+  import { mixedColors } from "$lib/stores/compositeColors";
   import { pureColorsUnlocked } from "$lib/stores/compositeColors";
   import CompositeColorButton from "./CompositeColorButton.svelte";
 
   let mixedColorsList = $derived($mixedColors);
-  let hasAnyMixedColors = $derived(mixedColorsList.some(color => color.count > 0));
 </script>
 
 <div class="h-full flex flex-col justify-center items-center gap-8">

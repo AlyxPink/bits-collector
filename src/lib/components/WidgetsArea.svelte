@@ -1,6 +1,7 @@
 <script lang="ts">
 import GeneratorIndicator from "./GeneratorIndicator.svelte";
 import PixelStream from "./PixelStream.svelte";
+import GameStatsWidget from "./GameStatsWidget.svelte";
 </script>
 
 <div class="h-full bg-black/10 border-r border-green-500/20 p-4 space-y-6">
@@ -28,14 +29,12 @@ import PixelStream from "./PixelStream.svelte";
     <PixelStream />
   </div>
   
-  <!-- Future Widget Placeholder -->
-  <div class="bg-black/20 rounded-lg p-4 border border-gray-600/30 opacity-50">
-    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3 text-center">
+  <!-- Game Stats Widget -->
+  <div class="bg-black/30 rounded-lg p-4 border border-cyan-500/30">
+    <h3 class="text-sm font-bold uppercase tracking-wider text-cyan-400 mb-3 text-center">
       Game Stats
     </h3>
-    <div class="text-center text-xs text-gray-500">
-      Coming Soon...
-    </div>
+    <GameStatsWidget />
   </div>
   
   <!-- Another Future Widget Placeholder -->

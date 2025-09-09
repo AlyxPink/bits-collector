@@ -42,32 +42,62 @@
   >
     {#each tabs as tab}
       {@const isUnlocked = unlockStatus[tab.id]?.unlocked ?? false}
-      {@const progress = unlockStatus[tab.id]?.progress ?? 0}
-      {@const required = unlockStatus[tab.id]?.required ?? 0}
+      {@const cost = unlockStatus[tab.id]?.cost}
+      {@const canAfford = unlockStatus[tab.id]?.canAfford ?? false}
 
       <button
-        onclick={() =>
-          isUnlocked &&
-          (activeTab = tab.id as "generators" | "powerups" | "breakthroughs")}
-        disabled={!isUnlocked}
-        class="h-auto min-h-16 flex flex-col items-center justify-center border-b border-green-500/10 transition-all duration-200 p-2
+        onclick={() => {
+          if (isUnlocked) {
+            activeTab = tab.id as "generators" | "powerups" | "breakthroughs";
+          } else if (canAfford) {
+            // Purchase tab unlock with success feedback
+            const success = upgrades.purchaseTabUnlock(tab.id);
+            if (success) {
+              // Visual feedback could be added here (e.g., flash animation)
+              activeTab = tab.id as "generators" | "powerups" | "breakthroughs";
+            }
+          }
+        }}
+        disabled={!isUnlocked && !canAfford}
+        class="h-auto min-h-16 flex flex-col items-center justify-center border-b border-green-500/10 transition-all duration-300 p-1 transform hover:scale-105
                {isUnlocked
           ? activeTab === tab.id
-            ? 'bg-green-500/20 border-r-2 border-r-green-400 text-green-400'
-            : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10 cursor-pointer'
+            ? 'bg-green-500/20 border-r-2 border-r-green-400 text-green-400 shadow-lg shadow-green-500/20'
+            : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10 cursor-pointer hover:shadow-md hover:shadow-green-500/10'
+          : canAfford
+          ? 'text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 cursor-pointer border border-cyan-500/30 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-500/20 animate-pulse'
           : 'text-gray-600 opacity-50 cursor-not-allowed'}"
       >
-        <div class="text-lg mb-1">{isUnlocked ? tab.icon : "🔒"}</div>
+        <div class="text-lg mb-1">{isUnlocked ? tab.icon : canAfford ? "💎" : "🔒"}</div>
         <div
           class="text-xs font-bold uppercase tracking-wider leading-none text-center mb-1"
         >
           {tab.name}
         </div>
 
-        {#if !isUnlocked}
-          <div class="text-xs opacity-75 text-center">
-            <div class="mb-1">🔒 {required} ⚪ needed</div>
-            <div class="text-yellow-400">{progress}/{required}</div>
+        {#if !isUnlocked && cost}
+          <div class="text-xs text-center leading-tight">
+            {#if canAfford}
+              <div class="text-cyan-300 mb-1">Click to unlock!</div>
+            {/if}
+            <div class="grid grid-cols-2 gap-0.5 text-xs">
+              <div class="flex items-center gap-1 {$pixels.white >= cost.white ? 'text-white' : 'text-red-400'}">
+                <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                {cost.white}
+              </div>
+              <div class="flex items-center gap-1 {$pixels.red >= cost.red ? 'text-red-400' : 'text-red-600'}">
+                <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                {cost.red}
+              </div>
+              <div class="flex items-center gap-1 {$pixels.green >= cost.green ? 'text-green-400' : 'text-green-600'}">
+                <div class="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+                {cost.green}
+              </div>
+              <div class="flex items-center gap-1 {$pixels.blue >= cost.blue ? 'text-blue-400' : 'text-blue-600'}">
+                <div class="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                {cost.blue}
+              </div>
+            </div>
           </div>
         {/if}
       </button>
@@ -231,24 +261,70 @@
           </p>
         {:else if !unlockStatus[activeTab]?.unlocked}
           <!-- Tab is locked -->
-          {@const progress = unlockStatus[activeTab]?.progress ?? 0}
-          {@const required = unlockStatus[activeTab]?.required ?? 0}
+          {@const cost = unlockStatus[activeTab]?.cost}
+          {@const canAfford = unlockStatus[activeTab]?.canAfford ?? false}
 
           <h3 class="text-xl font-bold text-green-400 mb-3">
             {TAB_UNLOCK_REQUIREMENTS[activeTab]?.name || activeTab} Locked
           </h3>
           <p class="text-sm opacity-75 leading-relaxed mb-4">
-            You need {required} lifetime white pixels to unlock this tab.
+            Purchase this tab to unlock access to {TAB_UNLOCK_REQUIREMENTS[activeTab]?.name.toLowerCase()}.
           </p>
-          <div class="text-yellow-400 font-bold">
-            Progress: {progress}/{required} ⚪
-          </div>
-          <div class="w-full bg-gray-700 rounded-full h-2 mt-3">
-            <div
-              class="bg-yellow-400 h-2 rounded-full transition-all duration-300"
-              style="width: {Math.min(100, (progress / required) * 100)}%"
-            ></div>
-          </div>
+          {#if cost}
+            <div class="mb-4 p-3 bg-black/20 rounded-lg border border-cyan-500/30">
+              <div class="text-sm font-bold text-cyan-400 mb-2">Unlock Cost:</div>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="flex items-center justify-between">
+                  <span>White:</span>
+                  <span class="flex items-center gap-1 {$pixels.white >= cost.white ? 'text-white' : 'text-red-400'}">
+                    {cost.white}
+                    <div class="w-2 h-2 rounded-full bg-white"></div>
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>Red:</span>
+                  <span class="flex items-center gap-1 {$pixels.red >= cost.red ? 'text-red-400' : 'text-red-600'}">
+                    {cost.red}
+                    <div class="w-2 h-2 rounded-full bg-red-500"></div>
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>Green:</span>
+                  <span class="flex items-center gap-1 {$pixels.green >= cost.green ? 'text-green-400' : 'text-green-600'}">
+                    {cost.green}
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                  </span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span>Blue:</span>
+                  <span class="flex items-center gap-1 {$pixels.blue >= cost.blue ? 'text-blue-400' : 'text-blue-600'}">
+                    {cost.blue}
+                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                  </span>
+                </div>
+              </div>
+              {#if canAfford}
+                <button 
+                  onclick={() => {
+                    const success = upgrades.purchaseTabUnlock(activeTab);
+                    if (success) {
+                      // Auto-switch to newly unlocked tab
+                      setTimeout(() => {
+                        activeTab = activeTab;
+                      }, 100);
+                    }
+                  }}
+                  class="w-full mt-3 py-2 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 animate-pulse"
+                >
+                  💎 Purchase {TAB_UNLOCK_REQUIREMENTS[activeTab]?.name}
+                </button>
+              {:else}
+                <div class="text-center mt-3 text-red-400 text-sm">
+                  Insufficient resources
+                </div>
+              {/if}
+            </div>
+          {/if}
         {/if}
       </div>
     {/if}

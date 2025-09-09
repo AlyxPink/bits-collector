@@ -1,11 +1,14 @@
 <script lang="ts">
-import { pixels, canConvert } from "$lib/stores/pixels";
+import { pixels, canConvert, conversionCost, createConversionEfficiencyStore } from "$lib/stores/pixels";
 import { gameStats } from "$lib/stores/game";
 import { audio } from "$lib/stores/audio";
 import { inputController } from "$lib/stores/inputController";
 
 let isConverting = $state(false);
 let buttonElement: HTMLButtonElement;
+
+// Create efficiency store
+const conversionEfficiency = createConversionEfficiencyStore(gameStats);
 
 function handleConvert(event?: MouseEvent) {
 	// Check if this click should be allowed (prevents held mouse button spam)
@@ -14,7 +17,7 @@ function handleConvert(event?: MouseEvent) {
 	}
 
 	if ($canConvert) {
-		pixels.convertToWhite();
+		pixels.convertToWhite($gameStats.totalConversions);
 		gameStats.incrementConversions();
 		audio.playConvertSound();
 
@@ -64,14 +67,21 @@ function handleKeyDown(event: KeyboardEvent) {
     <div class="text-sm opacity-75">
       {$canConvert 
         ? 'Click to create WHITE pixel!' 
-        : 'Need 1 of each RGB pixel'}
+        : `Need ${$conversionCost.red}R, ${$conversionCost.green}G, ${$conversionCost.blue}B`}
     </div>
     <div class="flex gap-4 text-xs mt-2">
-      <span class="text-red-400">R: 1</span>
-      <span class="text-green-400">G: 1</span>
-      <span class="text-blue-400">B: 1</span>
-      <span class="text-white">=</span>
-      <span class="text-white font-bold">W: 1</span>
+      <span class="text-red-400">R: {$conversionCost.red}</span>
+      <span class="text-green-400">G: {$conversionCost.green}</span>
+      <span class="text-blue-400">B: {$conversionCost.blue}</span>
+      <span class="text-white">→</span>
+      <span class="text-white font-bold">
+        W: {Math.floor($conversionEfficiency)}
+        {#if $conversionEfficiency < 1}
+          <span class="text-gray-400">
+            ({($conversionEfficiency * 100).toFixed(0)}%)
+          </span>
+        {/if}
+      </span>
     </div>
   </div>
 </button>

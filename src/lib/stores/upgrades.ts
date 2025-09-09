@@ -40,11 +40,18 @@ export interface BreakthroughUpgrade {
 	purchased: boolean;
 }
 
+export interface TabUnlockCost {
+	white: number;
+	red: number;
+	green: number;
+	blue: number;
+}
+
 export interface TabUnlock {
 	id: string;
 	name: string;
 	icon: string;
-	lifetimeWhiteRequired: number;
+	unlockCost: TabUnlockCost;
 }
 
 export interface UpgradeState {
@@ -53,6 +60,7 @@ export interface UpgradeState {
 	breakthroughs: Record<string, BreakthroughUpgrade>;
 	lastAutoTick: number;
 	bitAccumulator: Record<string, number>;
+	unlockedTabs: string[];
 }
 
 // Tab unlock requirements configuration
@@ -61,19 +69,19 @@ export const TAB_UNLOCK_REQUIREMENTS: Record<string, TabUnlock> = {
 		id: "generators",
 		name: "Generators",
 		icon: "🤖",
-		lifetimeWhiteRequired: 0, // Always unlocked
+		unlockCost: { white: 0, red: 0, green: 0, blue: 0 } // Always unlocked
 	},
 	powerups: {
 		id: "powerups",
 		name: "Powerups",
 		icon: "⚡",
-		lifetimeWhiteRequired: 50,
+		unlockCost: { white: 30, red: 100, green: 100, blue: 100 }
 	},
 	breakthroughs: {
 		id: "breakthroughs",
 		name: "Breakthroughs",
 		icon: "🚀",
-		lifetimeWhiteRequired: 100,
+		unlockCost: { white: 150, red: 500, green: 500, blue: 500 }
 	},
 };
 
@@ -158,6 +166,7 @@ const DEFAULT_POWERUPS: Record<string, PowerupUpgrade> = {
 };
 
 const DEFAULT_BREAKTHROUGHS: Record<string, BreakthroughUpgrade> = {
+	// Production efficiency breakthroughs
 	efficiency1: {
 		id: "efficiency1",
 		name: "Production Efficiency I",
@@ -183,6 +192,44 @@ const DEFAULT_BREAKTHROUGHS: Record<string, BreakthroughUpgrade> = {
 		type: "extender",
 		effect: 1000,
 		baseCost: 50000,
+		purchased: false,
+	},
+	
+	// Conversion-focused breakthroughs
+	conversionCatalyst: {
+		id: "conversionCatalyst",
+		name: "Conversion Catalyst",
+		description: "Reduces RGB cost multiplier by 25%",
+		type: "efficiency",
+		effect: 0.25,
+		baseCost: 150,
+		purchased: false,
+	},
+	efficiencyStabilizer: {
+		id: "efficiencyStabilizer",
+		name: "Efficiency Stabilizer",
+		description: "Reduces conversion efficiency decay by 50%",
+		type: "efficiency",
+		effect: 0.5,
+		baseCost: 300,
+		purchased: false,
+	},
+	bulkConverter: {
+		id: "bulkConverter",
+		name: "Bulk Converter",
+		description: "Convert up to 5 sets of RGB at once",
+		type: "multiplier",
+		effect: 5,
+		baseCost: 500,
+		purchased: false,
+	},
+	whiteAmplifier: {
+		id: "whiteAmplifier",
+		name: "White Pixel Amplifier",
+		description: "25% chance to get bonus white pixel",
+		type: "multiplier",
+		effect: 0.25,
+		baseCost: 750,
 		purchased: false,
 	},
 };
@@ -274,6 +321,7 @@ function loadUpgrades(): UpgradeState {
 			breakthroughs: { ...DEFAULT_BREAKTHROUGHS },
 			lastAutoTick: Date.now(),
 			bitAccumulator: { ...defaultAccumulator },
+			unlockedTabs: ["generators"],
 		};
 	}
 
@@ -291,6 +339,7 @@ function loadUpgrades(): UpgradeState {
 				breakthroughs: { ...DEFAULT_BREAKTHROUGHS, ...parsed.breakthroughs },
 				lastAutoTick: parsed.lastAutoTick || Date.now(),
 				bitAccumulator: { ...defaultAccumulator, ...parsed.bitAccumulator },
+				unlockedTabs: parsed.unlockedTabs || ["generators"],
 			};
 		} catch {
 			return {
@@ -299,6 +348,7 @@ function loadUpgrades(): UpgradeState {
 				breakthroughs: { ...DEFAULT_BREAKTHROUGHS },
 				lastAutoTick: Date.now(),
 				bitAccumulator: { ...defaultAccumulator },
+				unlockedTabs: ["generators"],
 			};
 		}
 	}
@@ -309,6 +359,7 @@ function loadUpgrades(): UpgradeState {
 		breakthroughs: { ...DEFAULT_BREAKTHROUGHS },
 		lastAutoTick: Date.now(),
 		bitAccumulator: { ...defaultAccumulator },
+		unlockedTabs: ["generators"],
 	};
 }
 
@@ -472,6 +523,54 @@ function createUpgradesStore() {
 				return true;
 			}
 			return false;
+		},
+
+		// Tab unlock purchase method
+		purchaseTabUnlock: (tabId: string): boolean => {
+			const state = get({ subscribe });
+			const pixelCount = get(pixels);
+			const tabConfig = TAB_UNLOCK_REQUIREMENTS[tabId];
+
+			// Check if tab is already unlocked
+			if (state.unlockedTabs.includes(tabId)) {
+				return false;
+			}
+
+			// Check if player has enough resources
+			const hasEnoughResources = 
+				pixelCount.white >= tabConfig.unlockCost.white &&
+				pixelCount.red >= tabConfig.unlockCost.red &&
+				pixelCount.green >= tabConfig.unlockCost.green &&
+				pixelCount.blue >= tabConfig.unlockCost.blue;
+
+			if (hasEnoughResources) {
+				// Deduct costs from pixels
+				pixels.update((p) => ({
+					...p,
+					white: p.white - tabConfig.unlockCost.white,
+					red: p.red - tabConfig.unlockCost.red,
+					green: p.green - tabConfig.unlockCost.green,
+					blue: p.blue - tabConfig.unlockCost.blue,
+				}));
+
+				// Add tab to unlocked tabs
+				update((state) => ({
+					...state,
+					unlockedTabs: [...state.unlockedTabs, tabId],
+				}));
+
+				return true;
+			}
+			return false;
+		},
+
+		isTabUnlocked: (tabId: string): boolean => {
+			const state = get({ subscribe });
+			return state.unlockedTabs.includes(tabId);
+		},
+
+		getTabUnlockCost: (tabId: string): TabUnlockCost => {
+			return TAB_UNLOCK_REQUIREMENTS[tabId]?.unlockCost || { white: 0, red: 0, green: 0, blue: 0 };
 		},
 
 		// Soft cap calculation functions
@@ -640,19 +739,26 @@ export const hasUnlockedUpgrades = derived(
 );
 
 // Tab unlock status derived stores
-export const tabUnlockStatus = derived(pixels, ($pixels) => {
+export const tabUnlockStatus = derived([pixels, upgrades], ([$pixels, $upgrades]) => {
 	const status: Record<
 		string,
-		{ unlocked: boolean; progress: number; required: number }
+		{ unlocked: boolean; cost: TabUnlockCost; canAfford: boolean }
 	> = {};
 
 	Object.values(TAB_UNLOCK_REQUIREMENTS).forEach((tabReq) => {
-		const progress = $pixels.lifetimeWhite;
-		const required = tabReq.lifetimeWhiteRequired;
+		const unlocked = $upgrades.unlockedTabs.includes(tabReq.id);
+		const cost = tabReq.unlockCost;
+		const canAfford = !unlocked && (
+			$pixels.white >= cost.white &&
+			$pixels.red >= cost.red &&
+			$pixels.green >= cost.green &&
+			$pixels.blue >= cost.blue
+		);
+			
 		status[tabReq.id] = {
-			unlocked: progress >= required,
-			progress,
-			required,
+			unlocked,
+			cost,
+			canAfford,
 		};
 	});
 

@@ -138,7 +138,7 @@ function createPixelStore() {
 					} else {
 						// Standard single conversion
 						// Sometimes efficiency might result in 0 white pixels
-						const actualWhiteGained = Math.max(whiteGained, efficiency > 0.5 ? 1 : 0);
+						const actualWhiteGained = Math.max(whiteGained, efficiency > 0 ? 1 : 0);
 						
 						return {
 							red: counts.red - cost.red,

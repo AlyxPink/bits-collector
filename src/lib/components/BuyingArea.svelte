@@ -1,51 +1,72 @@
 <script lang="ts">
-  import {
-    upgrades,
-    totalSpeedMultiplier,
-    ownedGenerators,
-  } from "$lib/stores/upgrades";
-  import { pixels } from "$lib/stores/pixels";
-  import { hasUnlockedUpgrades } from "$lib/stores/upgrades";
-  import GeneratorUpgrade from "./GeneratorUpgrade.svelte";
-  import PowerupUpgrade from "./PowerupUpgrade.svelte";
-  import BreakthroughUpgrade from "./BreakthroughUpgrade.svelte";
+import {
+	upgrades,
+	totalSpeedMultiplier,
+	ownedGenerators,
+	TAB_UNLOCK_REQUIREMENTS,
+	tabUnlockStatus,
+} from "$lib/stores/upgrades";
+import { pixels } from "$lib/stores/pixels";
+import { hasUnlockedUpgrades } from "$lib/stores/upgrades";
+import GeneratorUpgrade from "./GeneratorUpgrade.svelte";
+import PowerupUpgrade from "./PowerupUpgrade.svelte";
+import BreakthroughUpgrade from "./BreakthroughUpgrade.svelte";
 
-  let activeTab = $state<"generators" | "powerups" | "breakthroughs">(
-    "generators",
-  );
+let activeTab = $state<"generators" | "powerups" | "breakthroughs">(
+	"generators",
+);
 
-  let generators = $derived(Object.values($upgrades.generators));
-  let powerupsArray = $derived(Object.values($upgrades.powerups));
-  let breakthroughsArray = $derived(Object.values($upgrades.breakthroughs));
-  let efficiency = $derived(upgrades.getProductionEfficiency());
-  let hasAnyUpgrades = $derived(
-    $ownedGenerators.length > 0 || powerupsArray.some((p) => p.level > 0),
-  );
+let generators = $derived(Object.values($upgrades.generators));
+let powerupsArray = $derived(Object.values($upgrades.powerups));
+let breakthroughsArray = $derived(Object.values($upgrades.breakthroughs));
+let efficiency = $derived(upgrades.getProductionEfficiency());
+let hasAnyUpgrades = $derived(
+	$ownedGenerators.length > 0 || powerupsArray.some((p) => p.level > 0),
+);
 
-  const tabs = [
-    { id: "generators" as const, label: "Generators", icon: "🤖" },
-    { id: "powerups" as const, label: "Powerups", icon: "⚡" },
-    { id: "breakthroughs" as const, label: "Breakthroughs", icon: "🚀" },
-  ];
+// Use TAB_UNLOCK_REQUIREMENTS for consistent tab configuration
+const tabs = $derived(Object.values(TAB_UNLOCK_REQUIREMENTS));
+let unlockStatus = $derived($tabUnlockStatus);
+
+// Switch to generators tab if current tab becomes locked
+$effect(() => {
+	if (!unlockStatus[activeTab]?.unlocked) {
+		activeTab = "generators";
+	}
+});
 </script>
 
 <div class="h-full flex">
   <!-- Vertical Menu -->
   <div class="w-32 bg-black/30 border-r border-green-500/20 flex flex-col">
     {#each tabs as tab}
+      {@const isUnlocked = unlockStatus[tab.id]?.unlocked ?? false}
+      {@const progress = unlockStatus[tab.id]?.progress ?? 0}
+      {@const required = unlockStatus[tab.id]?.required ?? 0}
+      
       <button
-        onclick={() => (activeTab = tab.id)}
-        class="h-16 flex flex-col items-center justify-center border-b border-green-500/10 transition-all duration-200 hover:bg-green-500/10
-               {activeTab === tab.id
-          ? 'bg-green-500/20 border-r-2 border-r-green-400 text-green-400'
-          : 'text-gray-400 hover:text-green-400'}"
+        onclick={() => isUnlocked && (activeTab = tab.id as "generators" | "powerups" | "breakthroughs")}
+        disabled={!isUnlocked}
+        class="h-auto min-h-16 flex flex-col items-center justify-center border-b border-green-500/10 transition-all duration-200 p-2
+               {isUnlocked
+          ? activeTab === tab.id
+            ? 'bg-green-500/20 border-r-2 border-r-green-400 text-green-400'
+            : 'text-gray-400 hover:text-green-400 hover:bg-green-500/10 cursor-pointer'
+          : 'text-gray-600 opacity-50 cursor-not-allowed'}"
       >
-        <div class="text-lg mb-1">{tab.icon}</div>
+        <div class="text-lg mb-1">{isUnlocked ? tab.icon : '🔒'}</div>
         <div
-          class="text-xs font-bold uppercase tracking-wider leading-none text-center"
+          class="text-xs font-bold uppercase tracking-wider leading-none text-center mb-1"
         >
-          {tab.label}
+          {tab.name}
         </div>
+        
+        {#if !isUnlocked}
+          <div class="text-xs opacity-75 text-center">
+            <div class="mb-1">🔒 {required} ⚪ needed</div>
+            <div class="text-yellow-400">{progress}/{required}</div>
+          </div>
+        {/if}
       </button>
     {/each}
 
@@ -69,11 +90,7 @@
       <h2
         class="text-2xl font-bold uppercase tracking-wider glow-text text-green-400 mb-3"
       >
-        {activeTab === "generators"
-          ? "Generators"
-          : activeTab === "powerups"
-            ? "Powerups"
-            : "Breakthroughs"}
+        {TAB_UNLOCK_REQUIREMENTS[activeTab]?.name || "Generators"}
       </h2>
 
       {#if hasAnyUpgrades}
@@ -129,7 +146,7 @@
     </div>
 
     <!-- Content based on active tab -->
-    {#if $pixels.white > 0 || $hasUnlockedUpgrades}
+    {#if ($pixels.white > 0 || $hasUnlockedUpgrades) && unlockStatus[activeTab]?.unlocked}
       <div class="space-y-4">
         {#if activeTab === "generators"}
           <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
@@ -201,11 +218,35 @@
         class="text-center mt-16 p-8 bg-black/20 rounded-lg border border-green-500/30"
       >
         <div class="text-green-400 mb-4">🔒</div>
-        <h3 class="text-xl font-bold text-green-400 mb-3">Upgrades Locked</h3>
-        <p class="text-sm opacity-75 leading-relaxed">
-          Convert your first set of RGB pixels to white pixels<br />
-          to unlock the upgrade shop!
-        </p>
+        
+        {#if $pixels.white === 0 && !$hasUnlockedUpgrades}
+          <!-- Initial state: no upgrades unlocked yet -->
+          <h3 class="text-xl font-bold text-green-400 mb-3">Upgrades Locked</h3>
+          <p class="text-sm opacity-75 leading-relaxed">
+            Convert your first set of RGB pixels to white pixels<br />
+            to unlock the upgrade shop!
+          </p>
+        {:else if !unlockStatus[activeTab]?.unlocked}
+          <!-- Tab is locked -->
+          {@const progress = unlockStatus[activeTab]?.progress ?? 0}
+          {@const required = unlockStatus[activeTab]?.required ?? 0}
+          
+          <h3 class="text-xl font-bold text-green-400 mb-3">
+            {TAB_UNLOCK_REQUIREMENTS[activeTab]?.name || activeTab} Locked
+          </h3>
+          <p class="text-sm opacity-75 leading-relaxed mb-4">
+            You need {required} lifetime white pixels to unlock this tab.
+          </p>
+          <div class="text-yellow-400 font-bold">
+            Progress: {progress}/{required} ⚪
+          </div>
+          <div class="w-full bg-gray-700 rounded-full h-2 mt-3">
+            <div 
+              class="bg-yellow-400 h-2 rounded-full transition-all duration-300"
+              style="width: {Math.min(100, (progress / required) * 100)}%"
+            ></div>
+          </div>
+        {/if}
       </div>
     {/if}
   </div>

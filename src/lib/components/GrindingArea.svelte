@@ -1,9 +1,7 @@
 <script lang="ts">
   import { pixels } from "$lib/stores/pixels";
-  import {
-    mixedColorsUnlocked,
-    pureColorsUnlocked,
-  } from "$lib/stores/compositeColors";
+  import { mixedColorsUnlocked } from "$lib/stores/mixedColors";
+  import { pureColorsUnlocked } from "$lib/stores/pureColors";
   import PixelButton from "./PixelButton.svelte";
   import ConvertButton from "./ConvertButton.svelte";
   import WhitePixelDisplay from "./WhitePixelDisplay.svelte";

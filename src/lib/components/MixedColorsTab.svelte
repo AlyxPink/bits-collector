@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { mixedColors, compositeColors } from "$lib/stores/compositeColors";
-  import { pureColorsUnlocked } from "$lib/stores/compositeColors";
+  import { mixedColors } from "$lib/stores/mixedColors";
+  import { pureColorsUnlocked } from "$lib/stores/pureColors";
   import { formatRecipeComponents } from "$lib/utils/recipes";
-  import CompositeColorButton from "./CompositeColorButton.svelte";
+  import ColorButton from "./ColorButton.svelte";
 
-  let mixedColorsList = $derived($mixedColors);
-  let unlockedCount = $derived(compositeColors.getUnlockedCount("mixed"));
+  let mixedColorsList = $derived(mixedColors.getMixedColors());
+  let unlockedCount = $derived(mixedColors.getUnlockedCount());
   let totalMixedColors = 6;
-  let nextToUnlock = $derived(compositeColors.getNextToUnlock("mixed"));
+  let nextToUnlock = $derived(mixedColors.getNextToUnlock());
 </script>
 
 <div class="h-full flex flex-col justify-center items-center gap-8">
@@ -27,7 +27,7 @@
   <!-- Mixed colors grid -->
   <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl">
     {#each mixedColorsList as color}
-      <CompositeColorButton {color} />
+      <ColorButton {color} store={mixedColors} />
     {/each}
   </div>
 

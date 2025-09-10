@@ -2,7 +2,7 @@
 import { pixels, conversionCost, createConversionEfficiencyStore } from "$lib/stores/pixels";
 import { upgrades, tabUnlockStatus } from "$lib/stores/upgrades";
 import { gameStats } from "$lib/stores/game";
-import { compositeColors, pureColorsUnlocked } from "$lib/stores/compositeColors";
+import { pureColors, pureColorsUnlocked } from "$lib/stores/pureColors";
 
 // Create efficiency store
 const conversionEfficiency = createConversionEfficiencyStore(gameStats);
@@ -46,12 +46,12 @@ let showAdvanced = $state(false);
 let recentUnlock = $state<string | null>(null);
 
 // Pure colors and Spectrum Synergy information
-const pureColors = $derived(compositeColors.getUnlockedPureColors());
-const crimsonCount = $derived($compositeColors.crimson.unlocked ? $compositeColors.crimson.count : 0);
-const emeraldCount = $derived($compositeColors.emerald.unlocked ? $compositeColors.emerald.count : 0);
-const sapphireCount = $derived($compositeColors.sapphire.unlocked ? $compositeColors.sapphire.count : 0);
-const hasSpectrumSynergy = $derived(compositeColors.hasAllPureColors());
-const randomGeneratorMultiplier = $derived(compositeColors.getRandomGeneratorMultiplier());
+const unlockedPureColors = $derived(pureColors.getUnlockedColors());
+const crimsonCount = $derived(pureColors.getPureColorCount("red"));
+const emeraldCount = $derived(pureColors.getPureColorCount("green"));
+const sapphireCount = $derived(pureColors.getPureColorCount("blue"));
+const hasSpectrumSynergy = $derived(pureColors.hasAllPureColors());
+const randomGeneratorMultiplier = $derived(pureColors.getRandomGeneratorMultiplier());
 
 // Calculate balance ratio for pure colors
 const maxPureCount = $derived(Math.max(crimsonCount, emeraldCount, sapphireCount));
@@ -227,7 +227,7 @@ $effect(() => {
 							{(balanceRatio * 100).toFixed(0)}%
 						</span>
 					</div>
-				{:else if pureColors.length > 0}
+				{:else if unlockedPureColors.length > 0}
 					<div class="text-xs text-gray-500 mt-1">
 						💡 Create all 3 pure colors to activate Spectrum Synergy
 					</div>

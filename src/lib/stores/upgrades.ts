@@ -2,7 +2,7 @@ import { writable, derived, get } from "svelte/store";
 import { pixels } from "./pixels";
 import { pixelStream } from "./pixelStream";
 import { lumen } from "./lumen";
-import { compositeColors } from "./compositeColors";
+import { pureColors } from "./pureColors";
 import { 
 	GENERATOR_CONFIG, 
 	POWERUP_CONFIG, 
@@ -235,7 +235,7 @@ function calculateNextPureColorMultiplier(color: "red" | "green" | "blue", count
 	if (count > 100) effectiveCount = 100 + Math.pow(count - 100, PURE_COLOR_BOOST.effectiveCountPowers.above100);
 	if (count > 500) effectiveCount = 400 + Math.pow(count - 500, PURE_COLOR_BOOST.effectiveCountPowers.above500);
 
-	const hasAllPure = compositeColors.hasAllPureColors();
+	const hasAllPure = pureColors.hasAllPureColors();
 	const synergyBonus = hasAllPure ? Math.log10(count + 1) * PURE_COLOR_BOOST.synergyMultiplier : 0;
 
 	const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.01) + synergyBonus;
@@ -595,9 +595,9 @@ function createUpgradesStore() {
 		// Helper function to get pure color boost for a generator
 		getPureColorBoost: (generatorColor: "red" | "green" | "blue" | "random"): number => {
 			if (generatorColor === "random") {
-				return compositeColors.getRandomGeneratorMultiplier();
+				return pureColors.getRandomGeneratorMultiplier();
 			} else if (generatorColor === "red" || generatorColor === "green" || generatorColor === "blue") {
-				return compositeColors.getPureColorMultiplier(generatorColor);
+				return pureColors.getPureColorMultiplier(generatorColor);
 			}
 			return 1;
 		},
@@ -607,9 +607,9 @@ function createUpgradesStore() {
 			const currentMultiplier = upgrades.getPureColorBoost(generatorColor);
 			
 			if (generatorColor === "random") {
-				const redCount = compositeColors.getPureColorCount("red");
-				const greenCount = compositeColors.getPureColorCount("green");  
-				const blueCount = compositeColors.getPureColorCount("blue");
+				const redCount = pureColors.getPureColorCount("red");
+				const greenCount = pureColors.getPureColorCount("green");  
+				const blueCount = pureColors.getPureColorCount("blue");
 				
 				return {
 					type: "random" as const,
@@ -622,12 +622,12 @@ function createUpgradesStore() {
 						Math.min(redCount, greenCount, blueCount) / Math.max(redCount, greenCount, blueCount) : 0,
 				};
 			} else {
-				const pureCount = compositeColors.getPureColorCount(generatorColor);
+				const pureCount = pureColors.getPureColorCount(generatorColor);
 				const nextCount = pureCount + 1;
 				
 				// Calculate what the next multiplier would be
 				const nextMultiplier = pureCount === 0 ? 
-					compositeColors.getPureColorMultiplier(generatorColor) : 
+					pureColors.getPureColorMultiplier(generatorColor) : 
 					calculateNextPureColorMultiplier(generatorColor, nextCount);
 				
 				// Find next milestone
@@ -643,7 +643,7 @@ function createUpgradesStore() {
 					nextCount,
 					nextMilestone,
 					milestonesReached: milestones.filter(m => pureCount >= m).length,
-					hasAllPureColors: compositeColors.hasAllPureColors(),
+					hasAllPureColors: pureColors.hasAllPureColors(),
 				};
 			}
 		},
@@ -730,9 +730,9 @@ function createUpgradesStore() {
 						// Apply pure color multipliers for matching colors
 						let pureColorMultiplier = 1;
 						if (generator.color === "random") {
-							pureColorMultiplier = compositeColors.getRandomGeneratorMultiplier();
+							pureColorMultiplier = pureColors.getRandomGeneratorMultiplier();
 						} else if (generator.color === "red" || generator.color === "green" || generator.color === "blue") {
-							pureColorMultiplier = compositeColors.getPureColorMultiplier(generator.color);
+							pureColorMultiplier = pureColors.getPureColorMultiplier(generator.color);
 						}
 
 						// Apply soft cap efficiency, lumen multipliers, and pure color multipliers to this generator's rate

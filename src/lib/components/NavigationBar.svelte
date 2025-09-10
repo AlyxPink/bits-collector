@@ -1,6 +1,7 @@
 <script lang="ts">
 import { pixels } from "$lib/stores/pixels";
-import { compositeColors, mixedColorsUnlocked, pureColorsUnlocked } from "$lib/stores/compositeColors";
+import { mixedColors, mixedColorsUnlocked } from "$lib/stores/mixedColors";
+import { pureColors, pureColorsUnlocked } from "$lib/stores/pureColors";
 import { lumen } from "$lib/stores/lumen";
 import SettingsButton from "./SettingsButton.svelte";
 
@@ -70,7 +71,7 @@ const WINNING_GOAL = 1.79e308; // Near JavaScript's max number
         
         <!-- Row 2: Mixed Colors (visible when unlocked and any owned) -->
         {#if $mixedColorsUnlocked}
-          {@const mixedWithCounts = Object.values($compositeColors).filter(c => c.type === "mixed" && c.count > 0)}
+          {@const mixedWithCounts = mixedColors.getMixedColors().filter(c => c.count > 0)}
           {#if mixedWithCounts.length > 0}
             <div class="flex items-center gap-3 sm:gap-4">
               {#each mixedWithCounts as color}
@@ -85,7 +86,7 @@ const WINNING_GOAL = 1.79e308; // Near JavaScript's max number
         
         <!-- Row 3: Pure Colors (visible when unlocked and any owned) -->
         {#if $pureColorsUnlocked}
-          {@const pureWithCounts = Object.values($compositeColors).filter(c => c.type === "pure" && c.count > 0)}
+          {@const pureWithCounts = pureColors.getPureColors().filter(c => c.count > 0)}
           {#if pureWithCounts.length > 0}
             <div class="flex items-center gap-3 sm:gap-4">
               {#each pureWithCounts as color}

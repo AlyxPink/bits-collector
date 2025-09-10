@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { pureColors, compositeColors } from "$lib/stores/compositeColors";
-  import CompositeColorButton from "./CompositeColorButton.svelte";
+  import { pureColors } from "$lib/stores/pureColors";
+  import ColorButton from "./ColorButton.svelte";
 
-  let pureColorsList = $derived($pureColors);
-  let unlockedCount = $derived(compositeColors.getUnlockedCount("pure"));
+  let pureColorsList = $derived(pureColors.getPureColors());
+  let unlockedCount = $derived(pureColors.getUnlockedCount());
   let totalPureColors = 3;
-  let nextToUnlock = $derived(compositeColors.getNextToUnlock("pure"));
+  let nextToUnlock = $derived(pureColors.getNextToUnlock());
 </script>
 
 <div class="h-full flex flex-col justify-center items-center gap-8">
@@ -25,7 +25,7 @@
   <!-- Pure colors grid (horizontal layout since only 3 colors) -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-3xl">
     {#each pureColorsList as color}
-      <CompositeColorButton {color} />
+      <ColorButton {color} store={pureColors} />
     {/each}
   </div>
 

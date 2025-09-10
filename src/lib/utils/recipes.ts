@@ -2,12 +2,17 @@ import { get } from "svelte/store";
 import { pixels } from "$lib/stores/pixels";
 import { upgrades } from "$lib/stores/upgrades";
 import { lumen } from "$lib/stores/lumen";
-import type { CompositeColor } from "$lib/stores/compositeColors";
 
 export interface RecipeComponents {
 	red: number;
 	green: number;
 	blue: number;
+}
+
+// Generic color interface that works for both mixed and pure colors
+export interface ColorWithRecipe {
+	name: string;
+	recipe: RecipeComponents;
 }
 
 /**
@@ -45,17 +50,27 @@ export function getWhiteConversionRecipe(includeOutput: boolean = true): string 
 }
 
 /**
- * Get recipe text for a composite color
- * @param color The composite color configuration
+ * Get recipe text for a color (works with both mixed and pure colors)
+ * @param color The color configuration
  * @param includeOutput Whether to include the output arrow and name
  * @returns Recipe string like "2R + 1G → Orange"
  */
-export function getCompositeColorRecipe(
-	color: CompositeColor,
+export function getColorRecipe(
+	color: ColorWithRecipe,
 	includeOutput: boolean = true
 ): string {
 	const recipe = formatRecipeComponents(color.recipe);
 	return includeOutput ? `${recipe} → 1 ${color.name}` : recipe;
+}
+
+/**
+ * @deprecated Use getColorRecipe instead - keeping for backward compatibility
+ */
+export function getCompositeColorRecipe(
+	color: ColorWithRecipe,
+	includeOutput: boolean = true
+): string {
+	return getColorRecipe(color, includeOutput);
 }
 
 /**

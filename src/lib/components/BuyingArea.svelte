@@ -12,8 +12,9 @@
   import PowerupUpgrade from "./PowerupUpgrade.svelte";
   import BreakthroughUpgrade from "./BreakthroughUpgrade.svelte";
   import LuminosityUpgrade from "./LuminosityUpgrade.svelte";
+  import AutoConvertersTab from "./AutoConvertersTab.svelte";
 
-  let activeTab = $state<"generators" | "powerups" | "breakthroughs" | "luminosity">(
+  let activeTab = $state<"generators" | "autoConverters" | "powerups" | "breakthroughs" | "luminosity">(
     "generators"
   );
 
@@ -51,13 +52,13 @@
       <button
         onclick={() => {
           if (isUnlocked) {
-            activeTab = tab.id as "generators" | "powerups" | "breakthroughs" | "luminosity";
+            activeTab = tab.id as "generators" | "autoConverters" | "powerups" | "breakthroughs" | "luminosity";
           } else if (canAfford) {
             // Purchase tab unlock with success feedback
             const success = upgrades.purchaseTabUnlock(tab.id);
             if (success) {
               // Visual feedback could be added here (e.g., flash animation)
-              activeTab = tab.id as "generators" | "powerups" | "breakthroughs" | "luminosity";
+              activeTab = tab.id as "generators" | "autoConverters" | "powerups" | "breakthroughs" | "luminosity";
             }
           }
         }}
@@ -170,6 +171,10 @@
         <p class="text-sm opacity-60">
           Purchase generators to automatically collect colored bits over time
         </p>
+      {:else if activeTab === "autoConverters"}
+        <p class="text-sm opacity-60">
+          Automate conversions from RGB to white and composite colors
+        </p>
       {:else if activeTab === "powerups"}
         <p class="text-sm opacity-60">
           Expensive but powerful multipliers that boost ALL generator rates
@@ -209,6 +214,8 @@
               </p>
             </div>
           {/if}
+        {:else if activeTab === "autoConverters"}
+          <AutoConvertersTab />
         {:else if activeTab === "powerups"}
           <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {#each powerupsArray as powerup}

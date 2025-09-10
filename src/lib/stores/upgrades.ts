@@ -68,6 +68,12 @@ export const TAB_UNLOCK_REQUIREMENTS: Record<string, TabUnlock> = {
 		icon: "🤖",
 		unlockCost: { white: 0, red: 0, green: 0, blue: 0 } // Always unlocked
 	},
+	autoConverters: {
+		id: "autoConverters",
+		name: "Auto Converters",
+		icon: "⚙️",
+		unlockCost: { white: 10, red: 25, green: 25, blue: 25 }
+	},
 	powerups: {
 		id: "powerups",
 		name: "Powerups",

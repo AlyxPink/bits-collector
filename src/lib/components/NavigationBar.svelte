@@ -1,6 +1,7 @@
 <script lang="ts">
 import { pixels } from "$lib/stores/pixels";
 import { compositeColors, mixedColorsUnlocked, pureColorsUnlocked } from "$lib/stores/compositeColors";
+import { lumen } from "$lib/stores/lumen";
 import SettingsButton from "./SettingsButton.svelte";
 
 interface Props {
@@ -8,10 +9,37 @@ interface Props {
 }
 
 let { onSettingsClick }: Props = $props();
+
+// Format lumen numbers for display
+function formatLumen(num: number): string {
+	if (num < 1000) return num.toFixed(1);
+	if (num < 1000000) return (num / 1000).toFixed(2) + "K";
+	if (num < 1000000000) return (num / 1000000).toFixed(2) + "M";
+	if (num < 1000000000000) return (num / 1000000000).toFixed(2) + "B";
+	if (num < 1e15) return (num / 1e12).toFixed(2) + "T";
+	if (num < 1e18) return (num / 1e15).toFixed(2) + "Qa";
+	if (num < 1e21) return (num / 1e18).toFixed(2) + "Qi";
+	// Use scientific notation for truly absurd numbers
+	return num.toExponential(2);
+}
+
+// The absurd winning goal - like Prestige Tree's endgame
+const WINNING_GOAL = 1.79e308; // Near JavaScript's max number
 </script>
 
 <nav class="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-green-500/30 z-50">
   <div class="px-4 py-2">
+    <!-- Lumen Display - Prestige Tree Style -->
+    <div class="text-center mb-2">
+      <div class="flex items-center justify-center gap-2">
+        <span class="text-2xl">💡</span>
+        <span class="text-xl font-bold text-yellow-300">Lumens: {formatLumen($lumen.total)}</span>
+      </div>
+      <div class="text-xs text-yellow-200/70">
+        Reach {formatLumen(WINNING_GOAL)} to become the brightest light in the universe
+      </div>
+    </div>
+    
     <div class="flex justify-between items-start">
       <!-- Multi-row Currency Display -->
       <div class="flex flex-col gap-1">
@@ -78,3 +106,10 @@ let { onSettingsClick }: Props = $props();
     </div>
   </div>
 </nav>
+
+<style>
+  /* Add glow effect when lumen count is high */
+  :global(.lumen-glow) {
+    text-shadow: 0 0 10px rgba(255, 193, 7, 0.6);
+  }
+</style>

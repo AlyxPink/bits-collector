@@ -1,6 +1,9 @@
 <script lang="ts">
   import { pixels } from "$lib/stores/pixels";
-  import { mixedColorsUnlocked, pureColorsUnlocked } from "$lib/stores/compositeColors";
+  import {
+    mixedColorsUnlocked,
+    pureColorsUnlocked,
+  } from "$lib/stores/compositeColors";
   import PixelButton from "./PixelButton.svelte";
   import ConvertButton from "./ConvertButton.svelte";
   import WhitePixelDisplay from "./WhitePixelDisplay.svelte";
@@ -11,31 +14,31 @@
 
   // Tab configuration with unlock requirements
   let tabs = $derived([
-    { 
-      id: "rgb" as const, 
-      label: "RGB", 
+    {
+      id: "rgb" as const,
+      label: "RGB",
       iconType: "squares" as const,
-      unlocked: true 
+      unlocked: true,
     },
-    { 
-      id: "mixed" as const, 
-      label: "Mixed", 
-      iconType: "gradient" as const,
-      unlocked: $mixedColorsUnlocked,
-      requirement: 25
-    },
-    { 
-      id: "pure" as const, 
-      label: "Pure", 
+    {
+      id: "pure" as const,
+      label: "Pure",
       iconType: "diamond" as const,
       unlocked: $pureColorsUnlocked,
-      requirement: 50
-    }
+      requirement: 25,
+    },
+    {
+      id: "mixed" as const,
+      label: "Mixed",
+      iconType: "gradient" as const,
+      unlocked: $mixedColorsUnlocked,
+      requirement: 50,
+    },
   ]);
 
   // Switch to RGB tab if current tab becomes locked
   $effect(() => {
-    const currentTab = tabs.find(t => t.id === activeTab);
+    const currentTab = tabs.find((t) => t.id === activeTab);
     if (currentTab && !currentTab.unlocked) {
       activeTab = "rgb";
     }
@@ -69,14 +72,20 @@
               </div>
             {:else if tab.iconType === "gradient"}
               <!-- Mixed gradient circle -->
-              <div class="w-4 h-4 rounded-full bg-gradient-to-br from-red-500 via-green-500 to-blue-500"></div>
+              <div
+                class="w-4 h-4 rounded-full bg-gradient-to-br from-red-500 via-green-500 to-blue-500"
+              ></div>
             {:else if tab.iconType === "diamond"}
               <!-- Pure diamond shape -->
-              <div class="w-4 h-4 bg-gradient-to-br from-red-600 to-blue-600 transform rotate-45 rounded-sm"></div>
+              <div
+                class="w-4 h-4 bg-gradient-to-br from-red-600 to-blue-600 transform rotate-45 rounded-sm"
+              ></div>
             {/if}
           {:else}
             <!-- Lock icon -->
-            <div class="w-4 h-4 bg-gray-600 rounded border border-gray-500 flex items-center justify-center">
+            <div
+              class="w-4 h-4 bg-gray-600 rounded border border-gray-500 flex items-center justify-center"
+            >
               <div class="w-1 h-1 bg-gray-400 rounded-full"></div>
             </div>
           {/if}
@@ -86,10 +95,12 @@
         >
           {tab.label}
         </div>
-        
+
         {#if !tab.unlocked && tab.requirement}
           <div class="text-xs opacity-75 text-center">
-            <div class="text-yellow-400">{$pixels.lifetimeWhite}/{tab.requirement}</div>
+            <div class="text-yellow-400">
+              {$pixels.lifetimeWhite}/{tab.requirement}
+            </div>
           </div>
         {/if}
       </button>
@@ -131,7 +142,9 @@
           <p>Click RGB buttons to collect colored pixels</p>
           <p>Convert sets of R+G+B into WHITE pixels</p>
           {#if !$mixedColorsUnlocked}
-            <p class="text-yellow-400 mt-2">Get 25 lifetime ⚪ to unlock Mixed Colors!</p>
+            <p class="text-yellow-400 mt-2">
+              Get 25 lifetime ⚪ to unlock Mixed Colors!
+            </p>
           {/if}
         </div>
       </div>

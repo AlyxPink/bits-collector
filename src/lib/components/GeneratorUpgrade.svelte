@@ -9,6 +9,7 @@ import { audio } from "$lib/stores/audio";
 import { upgradeColorToVariant } from "$lib/utils/colors";
 import GameCard from "$lib/components/ui/GameCard.svelte";
 import GameButton from "$lib/components/ui/GameButton.svelte";
+import PureColorBoostIndicator from "$lib/components/PureColorBoostIndicator.svelte";
 
 interface Props {
 	upgrade: GeneratorUpgrade;
@@ -68,11 +69,16 @@ function handlePurchase() {
       </p>
     </div>
     
-    <div class="text-right">
-      <div class="text-sm opacity-60">Level</div>
-      <div class="text-xl font-bold tabular-nums">
-        {upgrade.level}
+    <div class="text-right space-y-2">
+      <div>
+        <div class="text-sm opacity-60">Level</div>
+        <div class="text-xl font-bold tabular-nums">
+          {upgrade.level}
+        </div>
       </div>
+      
+      <!-- Pure Color Boost Indicator -->
+      <PureColorBoostIndicator generatorColor={upgrade.color} />
     </div>
   </div>
   

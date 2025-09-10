@@ -7,17 +7,20 @@
     tabUnlockStatus,
   } from "$lib/stores/upgrades";
   import { pixels } from "$lib/stores/pixels";
+  import { lumen } from "$lib/stores/lumen";
   import GeneratorUpgrade from "./GeneratorUpgrade.svelte";
   import PowerupUpgrade from "./PowerupUpgrade.svelte";
   import BreakthroughUpgrade from "./BreakthroughUpgrade.svelte";
+  import LuminosityUpgrade from "./LuminosityUpgrade.svelte";
 
-  let activeTab = $state<"generators" | "powerups" | "breakthroughs">(
+  let activeTab = $state<"generators" | "powerups" | "breakthroughs" | "luminosity">(
     "generators"
   );
 
   let generators = $derived(Object.values($upgrades.generators));
   let powerupsArray = $derived(Object.values($upgrades.powerups));
   let breakthroughsArray = $derived(Object.values($upgrades.breakthroughs));
+  let luminosityArray = $derived(Object.values($lumen.upgrades));
   let efficiency = $derived(upgrades.getProductionEfficiency());
   let hasAnyUpgrades = $derived(
     $ownedGenerators.length > 0 || powerupsArray.some((p) => p.level > 0)
@@ -48,13 +51,13 @@
       <button
         onclick={() => {
           if (isUnlocked) {
-            activeTab = tab.id as "generators" | "powerups" | "breakthroughs";
+            activeTab = tab.id as "generators" | "powerups" | "breakthroughs" | "luminosity";
           } else if (canAfford) {
             // Purchase tab unlock with success feedback
             const success = upgrades.purchaseTabUnlock(tab.id);
             if (success) {
               // Visual feedback could be added here (e.g., flash animation)
-              activeTab = tab.id as "generators" | "powerups" | "breakthroughs";
+              activeTab = tab.id as "generators" | "powerups" | "breakthroughs" | "luminosity";
             }
           }
         }}
@@ -171,9 +174,13 @@
         <p class="text-sm opacity-60">
           Expensive but powerful multipliers that boost ALL generator rates
         </p>
-      {:else}
+      {:else if activeTab === "breakthroughs"}
         <p class="text-sm opacity-60">
           Break through production soft caps with powerful efficiency upgrades
+        </p>
+      {:else if activeTab === "luminosity"}
+        <p class="text-sm opacity-60">
+          Harness the power of lumen to boost all systems and unlock synergies
         </p>
       {/if}
     </div>
@@ -244,6 +251,27 @@
               </p>
             </div>
           {/if}
+        {:else if activeTab === "luminosity"}
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            {#each luminosityArray as upgrade}
+              <LuminosityUpgrade {upgrade} />
+            {/each}
+          </div>
+
+          {#if luminosityArray.every((u) => u.level === 0)}
+            <div
+              class="text-center mt-8 p-6 bg-black/30 rounded-lg border border-yellow-500/30"
+            >
+              <div class="text-yellow-400 mb-2">💡</div>
+              <h3 class="text-lg font-bold text-yellow-400 mb-2">
+                Luminosity Upgrades
+              </h3>
+              <p class="text-sm opacity-75 leading-relaxed">
+                Harness the power of lumen to create powerful synergies!<br />
+                Each upgrade improves lumen generation or boosts other systems.
+              </p>
+            </div>
+          {/if}
         {/if}
       </div>
     {:else}
@@ -308,10 +336,7 @@
                   onclick={() => {
                     const success = upgrades.purchaseTabUnlock(activeTab);
                     if (success) {
-                      // Auto-switch to newly unlocked tab
-                      setTimeout(() => {
-                        activeTab = activeTab;
-                      }, 100);
+                      // Tab unlocking will trigger reactive updates automatically
                     }
                   }}
                   class="w-full mt-3 py-2 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30 animate-pulse"

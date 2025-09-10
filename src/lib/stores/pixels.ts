@@ -40,7 +40,7 @@ function loadPixels(): PixelCounts {
 }
 
 // Calculate dynamic conversion cost based on lifetime white pixels
-function calculateConversionCost(lifetimeWhite: number, breakthroughs?: any): ConversionCost {
+function calculateConversionCost(lifetimeWhite: number, breakthroughs?: any, lumenCostReduction = 1): ConversionCost {
 	// Smooth exponential scaling starting from base cost of 1
 	let costMultiplier = Math.pow(1 + lifetimeWhite / 10, 0.4);
 	
@@ -59,6 +59,9 @@ function calculateConversionCost(lifetimeWhite: number, breakthroughs?: any): Co
 	if (breakthroughs?.conversionCatalyst?.purchased) {
 		costMultiplier *= (1 - breakthroughs.conversionCatalyst.effect);
 	}
+	
+	// Apply lumen-based cost reduction synergy (passed as parameter)
+	costMultiplier *= lumenCostReduction;
 	
 	const cost = Math.ceil(costMultiplier);
 	return { red: cost, green: cost, blue: cost };
@@ -93,7 +96,7 @@ function createPixelStore() {
 	const { subscribe, update, set } = writable<PixelCounts>(loadPixels());
 
 	// Save to localStorage whenever the store changes
-	subscribe((value: any) => {
+	subscribe((value) => {
 		if (typeof window !== "undefined") {
 			localStorage.setItem("pixelCounts", JSON.stringify(value));
 		}
@@ -108,9 +111,9 @@ function createPixelStore() {
 				[color]: counts[color] + 1,
 			}));
 		},
-		convertToWhite: (totalConversions: number = 0, breakthroughs?: any) => {
+		convertToWhite: (totalConversions: number = 0, breakthroughs?: any, lumenCostReduction = 1) => {
 			update((counts) => {
-				const cost = calculateConversionCost(counts.lifetimeWhite, breakthroughs);
+				const cost = calculateConversionCost(counts.lifetimeWhite, breakthroughs, lumenCostReduction);
 				
 				// Check if we have enough RGB pixels for the conversion
 				if (counts.red >= cost.red && counts.green >= cost.green && counts.blue >= cost.blue) {
@@ -152,16 +155,16 @@ function createPixelStore() {
 				return counts;
 			});
 		},
-		getConversionCost: (breakthroughs?: any): ConversionCost => {
-			const counts = get({ subscribe });
-			return calculateConversionCost(counts.lifetimeWhite, breakthroughs);
+		getConversionCost: (breakthroughs?: any, lumenCostReduction = 1): ConversionCost => {
+			const counts = get(pixels);
+			return calculateConversionCost(counts.lifetimeWhite, breakthroughs, lumenCostReduction);
 		},
 		getConversionEfficiency: (totalConversions: number = 0, breakthroughs?: any): number => {
 			return calculateConversionEfficiency(totalConversions, breakthroughs);
 		},
-		canConvertAtCost: (totalConversions: number = 0, breakthroughs?: any): boolean => {
-			const counts = get({ subscribe });
-			const cost = calculateConversionCost(counts.lifetimeWhite, breakthroughs);
+		canConvertAtCost: (totalConversions: number = 0, breakthroughs?: any, lumenCostReduction = 1): boolean => {
+			const counts = get(pixels);
+			const cost = calculateConversionCost(counts.lifetimeWhite, breakthroughs, lumenCostReduction);
 			const efficiency = calculateConversionEfficiency(totalConversions, breakthroughs);
 			
 			return counts.red >= cost.red && 

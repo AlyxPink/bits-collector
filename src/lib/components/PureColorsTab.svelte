@@ -19,16 +19,43 @@
   </div>
 
   <!-- Instructions -->
-  <div class="text-center mt-8 opacity-60 text-sm space-y-2 max-w-lg">
+  <div class="text-center mt-8 opacity-60 text-sm space-y-3 max-w-2xl">
     <p class="text-purple-400 uppercase tracking-wider font-bold text-xs">
-      Pure Concentration:
+      Pure Concentration & Generator Synergy:
     </p>
     <p>Create the purest forms by using 3 pixels of the same color</p>
-    <p>Pure colors are concentrated essences with deep, rich properties</p>
-    <div class="text-center mt-4 text-xs text-gray-500">
-      <p>❤️ Crimson: 3 Red pixels concentrated into deep crimson</p>
-      <p>💚 Emerald: 3 Green pixels concentrated into brilliant emerald</p>
-      <p>💙 Sapphire: 3 Blue pixels concentrated into pure sapphire</p>
+    <p class="text-yellow-300 opacity-80">
+      💡 <strong>Pure colors boost their matching RGB generators!</strong>
+    </p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4 text-xs">
+      <div class="bg-red-900/20 border border-red-500/30 rounded p-3">
+        <p class="text-red-400 font-bold">❤️ Crimson Boost</p>
+        <p class="text-gray-300">3 Red pixels → Crimson</p>
+        <p class="text-red-300">Boosts Red Generator rate</p>
+      </div>
+      <div class="bg-emerald-900/20 border border-emerald-500/30 rounded p-3">
+        <p class="text-emerald-400 font-bold">💚 Emerald Boost</p>
+        <p class="text-gray-300">3 Green pixels → Emerald</p>
+        <p class="text-emerald-300">Boosts Green Generator rate</p>
+      </div>
+      <div class="bg-blue-900/20 border border-blue-500/30 rounded p-3">
+        <p class="text-blue-400 font-bold">💙 Sapphire Boost</p>
+        <p class="text-gray-300">3 Blue pixels → Sapphire</p>
+        <p class="text-blue-300">Boosts Blue Generator rate</p>
+      </div>
+    </div>
+    
+    <div class="bg-purple-900/20 border border-purple-500/30 rounded p-3 mt-3 text-xs">
+      <p class="text-purple-400 font-bold">🌈 Spectrum Synergy</p>
+      <p class="text-gray-300">Having all three pure colors boosts Random Generator</p>
+      <p class="text-yellow-300">✨ Perfect balance = maximum effect!</p>
+    </div>
+    
+    <div class="text-xs text-gray-400 mt-4 space-y-1">
+      <p>• Milestones at 10, 25, 50+ pure colors give bonus multipliers</p>
+      <p>• Synergy bonus when you have all three pure color types</p>
+      <p>• Check your generators to see current boost effects!</p>
     </div>
   </div>
 </div>

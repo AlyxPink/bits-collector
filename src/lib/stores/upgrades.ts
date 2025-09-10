@@ -1,6 +1,8 @@
 import { writable, derived, get } from "svelte/store";
 import { pixels } from "./pixels";
 import { pixelStream } from "./pixelStream";
+import { lumen } from "./lumen";
+import { compositeColors } from "./compositeColors";
 
 export interface GeneratorUpgrade {
 	id: string;
@@ -25,16 +27,11 @@ export interface PowerupUpgrade {
 	maxLevel: number;
 }
 
-export interface SoftCapTier {
-	threshold: number;
-	power: number;
-}
-
 export interface BreakthroughUpgrade {
 	id: string;
 	name: string;
 	description: string;
-	type: "extender" | "efficiency" | "multiplier";
+	type: "efficiency" | "multiplier";
 	effect: number;
 	baseCost: number;
 	purchased: boolean;
@@ -82,6 +79,12 @@ export const TAB_UNLOCK_REQUIREMENTS: Record<string, TabUnlock> = {
 		name: "Breakthroughs",
 		icon: "🚀",
 		unlockCost: { white: 150, red: 500, green: 500, blue: 500 }
+	},
+	luminosity: {
+		id: "luminosity",
+		name: "Luminosity",
+		icon: "💡",
+		unlockCost: { white: 500, red: 1000, green: 1000, blue: 1000 }
 	},
 };
 
@@ -169,28 +172,28 @@ const DEFAULT_BREAKTHROUGHS: Record<string, BreakthroughUpgrade> = {
 	// Production efficiency breakthroughs
 	efficiency1: {
 		id: "efficiency1",
-		name: "Production Efficiency I",
-		description: "Reduces first soft cap penalty (10x threshold)",
-		type: "extender",
-		effect: 10,
+		name: "Production Smoothing I",
+		description: "Improves production curve efficiency by 15%",
+		type: "efficiency",
+		effect: 1.15,
 		baseCost: 100,
 		purchased: false,
 	},
 	efficiency2: {
 		id: "efficiency2",
-		name: "Production Efficiency II",
-		description: "Reduces second soft cap penalty (100x threshold)",
-		type: "extender",
-		effect: 100,
+		name: "Production Smoothing II",
+		description: "Improves production curve efficiency by 25%",
+		type: "efficiency",
+		effect: 1.25,
 		baseCost: 2500,
 		purchased: false,
 	},
 	efficiency3: {
 		id: "efficiency3",
-		name: "Production Efficiency III",
-		description: "Reduces third soft cap penalty (1000x threshold)",
-		type: "extender",
-		effect: 1000,
+		name: "Production Smoothing III",
+		description: "Improves production curve efficiency by 40%",
+		type: "efficiency",
+		effect: 1.4,
 		baseCost: 50000,
 		purchased: false,
 	},
@@ -234,39 +237,61 @@ const DEFAULT_BREAKTHROUGHS: Record<string, BreakthroughUpgrade> = {
 	},
 };
 
-// Soft cap configuration
-const SOFT_CAP_TIERS: SoftCapTier[] = [
-	{ threshold: 10, power: 0.5 }, // First soft cap at 10 bits/sec → ^0.5 (square root)
-	{ threshold: 100, power: 0.33 }, // Second soft cap at 100 bits/sec → ^0.33 (cube root)
-	{ threshold: 1000, power: 0.25 }, // Third soft cap at 1000 bits/sec → ^0.25 (fourth root)
-];
+// Calculate what the pure color multiplier would be at a specific count
+function calculateNextPureColorMultiplier(color: "red" | "green" | "blue", count: number): number {
+	if (count === 0) return 1;
 
-// Soft cap calculation functions
-function applySoftCaps(
+	const baseBoost = Math.pow(count, 0.5) * 0.1;
+	const milestones = [10, 25, 50, 100, 250, 500, 1000];
+	const milestoneBonus = milestones.filter((m) => count >= m).length * 0.15;
+
+	let effectiveCount = count;
+	if (count > 100) effectiveCount = 100 + Math.pow(count - 100, 0.8);
+	if (count > 500) effectiveCount = 400 + Math.pow(count - 500, 0.6);
+
+	const hasAllPure = compositeColors.hasAllPureColors();
+	const synergyBonus = hasAllPure ? Math.log10(count + 1) * 0.2 : 0;
+
+	const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.01) + synergyBonus;
+
+	if (rawMultiplier > 20) return 18 + Math.pow(rawMultiplier - 20, 0.3);
+	if (rawMultiplier > 10) return 9 + Math.pow(rawMultiplier - 10, 0.5);
+	if (rawMultiplier > 5) return 5 + Math.pow(rawMultiplier - 5, 0.7);
+
+	return rawMultiplier;
+}
+
+// Smooth production scaling - no hard plateaus!
+function applySmoothScaling(
 	production: number,
 	breakthroughs: Record<string, BreakthroughUpgrade>,
 ): number {
-	let result = production;
+	let scaled = production;
 
-	// Apply soft caps sequentially
-	for (const tier of SOFT_CAP_TIERS) {
-		// Check if breakthrough extends this threshold
-		let effectiveThreshold = tier.threshold;
+	// Apply smooth logarithmic-like scaling
+	// This creates gradual slowdown without hard walls
+	scaled = Math.pow(production, 0.85) * 2;
 
-		// Apply breakthrough effects (multiply threshold by effect)
-		Object.values(breakthroughs).forEach((breakthrough) => {
-			if (breakthrough.purchased && breakthrough.type === "extender") {
-				effectiveThreshold *= breakthrough.effect;
-			}
-		});
-
-		if (result > effectiveThreshold) {
-			const excess = result - effectiveThreshold;
-			result = effectiveThreshold + Math.pow(excess, tier.power);
-		}
+	// Gradual soft caps that "bend" rather than "break"
+	if (scaled > 10) {
+		scaled = 10 + Math.pow(scaled - 10, 0.75) * 1.5;
+	}
+	if (scaled > 100) {
+		scaled = 100 + Math.pow(scaled - 100, 0.6) * 1.2;
+	}
+	if (scaled > 1000) {
+		scaled = 1000 + Math.pow(scaled - 1000, 0.45);
 	}
 
-	return result;
+	// Apply breakthrough multipliers for smooth efficiency boosts
+	let efficiencyMultiplier = 1;
+	Object.values(breakthroughs).forEach((breakthrough) => {
+		if (breakthrough.purchased && breakthrough.type === "efficiency") {
+			efficiencyMultiplier *= breakthrough.effect;
+		}
+	});
+
+	return scaled * efficiencyMultiplier;
 }
 
 function getProductionEfficiency(
@@ -276,9 +301,9 @@ function getProductionEfficiency(
 	if (production === 0) return 1;
 
 	const uncappedProduction = production;
-	const cappedProduction = applySoftCaps(production, breakthroughs);
+	const scaledProduction = applySmoothScaling(production, breakthroughs);
 
-	return cappedProduction / uncappedProduction;
+	return scaledProduction / uncappedProduction;
 }
 
 function getTotalTheoreticalProduction(
@@ -470,18 +495,7 @@ function createUpgradesStore() {
 			if (!upgrade || !upgrade.owned) return 0;
 
 			const baseRate = upgrade.baseRate * upgrade.level;
-			const multiplier = get({ subscribe }).powerups
-				? (() => {
-						const currentState = get({ subscribe });
-						let mult = 1;
-						Object.values(currentState.powerups).forEach((powerup) => {
-							if (powerup.level > 0) {
-								mult *= Math.pow(powerup.multiplier, powerup.level);
-							}
-						});
-						return mult;
-					})()
-				: 1;
+			const multiplier = upgrades.getEffectiveMultiplier();
 
 			return baseRate * multiplier;
 		},
@@ -585,7 +599,7 @@ function createUpgradesStore() {
 				state.generators,
 				state.powerups,
 			);
-			return applySoftCaps(theoretical, state.breakthroughs);
+			return applySmoothScaling(theoretical, state.breakthroughs);
 		},
 
 		getProductionEfficiency: (): number => {
@@ -595,6 +609,62 @@ function createUpgradesStore() {
 				state.powerups,
 			);
 			return getProductionEfficiency(theoretical, state.breakthroughs);
+		},
+
+		// Helper function to get pure color boost for a generator
+		getPureColorBoost: (generatorColor: "red" | "green" | "blue" | "random"): number => {
+			if (generatorColor === "random") {
+				return compositeColors.getRandomGeneratorMultiplier();
+			} else if (generatorColor === "red" || generatorColor === "green" || generatorColor === "blue") {
+				return compositeColors.getPureColorMultiplier(generatorColor);
+			}
+			return 1;
+		},
+
+		// Get detailed pure color boost info for UI display
+		getPureColorBoostDetails: (generatorColor: "red" | "green" | "blue" | "random") => {
+			const currentMultiplier = upgrades.getPureColorBoost(generatorColor);
+			
+			if (generatorColor === "random") {
+				const redCount = compositeColors.getPureColorCount("red");
+				const greenCount = compositeColors.getPureColorCount("green");  
+				const blueCount = compositeColors.getPureColorCount("blue");
+				
+				return {
+					type: "random" as const,
+					currentMultiplier,
+					redCount,
+					greenCount,
+					blueCount,
+					hasBalance: Math.min(redCount, greenCount, blueCount) > 0,
+					balanceRatio: Math.max(redCount, greenCount, blueCount) > 0 ? 
+						Math.min(redCount, greenCount, blueCount) / Math.max(redCount, greenCount, blueCount) : 0,
+				};
+			} else {
+				const pureCount = compositeColors.getPureColorCount(generatorColor);
+				const nextCount = pureCount + 1;
+				
+				// Calculate what the next multiplier would be
+				const nextMultiplier = pureCount === 0 ? 
+					compositeColors.getPureColorMultiplier(generatorColor) : 
+					calculateNextPureColorMultiplier(generatorColor, nextCount);
+				
+				// Find next milestone
+				const milestones = [10, 25, 50, 100, 250, 500, 1000];
+				const nextMilestone = milestones.find(m => m > pureCount);
+				
+				return {
+					type: "single" as const,
+					color: generatorColor,
+					pureCount,
+					currentMultiplier,
+					nextMultiplier,
+					nextCount,
+					nextMilestone,
+					milestonesReached: milestones.filter(m => pureCount >= m).length,
+					hasAllPureColors: compositeColors.hasAllPureColors(),
+				};
+			}
 		},
 
 		getEffectiveGeneratorRate: (id: string): number => {
@@ -614,14 +684,22 @@ function createUpgradesStore() {
 				1,
 			);
 
-			const theoreticalRate = baseRate * powerupMultiplier;
+			// Apply lumen multipliers
+			const lumenBoost = lumen.getRGBGeneratorMultiplier();
+			const overflowBoost = lumen.getRGBBoostFromOverflow();
+			const totalLumenMultiplier = lumenBoost * overflowBoost;
+
+			// Apply pure color multipliers
+			const pureColorMultiplier = upgrades.getPureColorBoost(upgrade.color);
+
+			const theoreticalRate = baseRate * powerupMultiplier * totalLumenMultiplier * pureColorMultiplier;
 
 			// Apply soft caps proportionally
 			const totalTheoretical = getTotalTheoreticalProduction(
 				state.generators,
 				state.powerups,
 			);
-			const totalEffective = applySoftCaps(
+			const totalEffective = applySmoothScaling(
 				totalTheoretical,
 				state.breakthroughs,
 			);
@@ -642,7 +720,7 @@ function createUpgradesStore() {
 					state.generators,
 					state.powerups,
 				);
-				const totalEffective = applySoftCaps(
+				const totalEffective = applySmoothScaling(
 					totalTheoretical,
 					state.breakthroughs,
 				);
@@ -663,8 +741,21 @@ function createUpgradesStore() {
 							1,
 						);
 
-						// Apply soft cap efficiency to this generator's rate
-						const effectiveRate = rate * multiplier * efficiencyRatio;
+						// Apply lumen synergies
+						const lumenBoost = lumen.getRGBGeneratorMultiplier();
+						const overflowBoost = lumen.getRGBBoostFromOverflow();
+						const totalLumenMultiplier = lumenBoost * overflowBoost;
+
+						// Apply pure color multipliers for matching colors
+						let pureColorMultiplier = 1;
+						if (generator.color === "random") {
+							pureColorMultiplier = compositeColors.getRandomGeneratorMultiplier();
+						} else if (generator.color === "red" || generator.color === "green" || generator.color === "blue") {
+							pureColorMultiplier = compositeColors.getPureColorMultiplier(generator.color);
+						}
+
+						// Apply soft cap efficiency, lumen multipliers, and pure color multipliers to this generator's rate
+						const effectiveRate = rate * multiplier * efficiencyRatio * totalLumenMultiplier * pureColorMultiplier;
 						// Add fractional bits to accumulator
 						state.bitAccumulator[generator.id] += effectiveRate * deltaTime;
 

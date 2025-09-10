@@ -7,34 +7,91 @@ export interface StreamPixel {
 	x: number;
 	y: number;
 	opacity: number;
+	intensity: number; // Represents how many pixels this one represents
 }
 
 export interface PixelStreamState {
 	pixels: StreamPixel[];
 	nextId: number;
+	generationRate: number; // Pixels per second for dynamic sizing
+	lastRateUpdate: number;
 }
 
 let MATRIX_WIDTH = 30; // Dynamic width, will be updated by component
-const MATRIX_HEIGHT = 10;
+let MATRIX_HEIGHT = 10; // Dynamic height based on generation rate
 const PIXEL_LIFETIME = 3000; // 3 seconds in milliseconds
+
+// Performance thresholds for sampling
+const SAMPLING_THRESHOLDS = {
+	LOW: 100,    // < 100/sec: show all pixels
+	MEDIUM: 1000, // 100-1000/sec: sample 20%
+	HIGH: Infinity // > 1000/sec: sample 5%
+};
+
+const MATRIX_HEIGHT_THRESHOLDS = {
+	SMALL: { rate: 100, height: 8 },
+	MEDIUM: { rate: 500, height: 12 },
+	LARGE: { rate: 1000, height: 15 },
+	MAX: { rate: Infinity, height: 15 }
+};
 
 function createPixelStreamStore() {
 	const { subscribe, update } = writable<PixelStreamState>({
 		pixels: [],
 		nextId: 0,
+		generationRate: 0,
+		lastRateUpdate: Date.now(),
 	});
 
 	return {
 		subscribe,
 
-		// Add new pixels to the stream
+		// Add new pixels to the stream with smart sampling
 		addPixels: (colors: ("red" | "green" | "blue")[]) => {
 			const now = Date.now();
 
 			update((state) => {
+				// Update generation rate
+				const deltaTime = now - state.lastRateUpdate;
+				if (deltaTime > 1000) {
+					// Update rate every second
+					const recentPixels = state.pixels.filter(p => now - p.createdAt < 1000);
+					const newRate = recentPixels.length;
+					state.generationRate = newRate;
+					state.lastRateUpdate = now;
+
+					// Update matrix height based on generation rate
+					if (newRate < MATRIX_HEIGHT_THRESHOLDS.SMALL.rate) {
+						MATRIX_HEIGHT = MATRIX_HEIGHT_THRESHOLDS.SMALL.height;
+					} else if (newRate < MATRIX_HEIGHT_THRESHOLDS.MEDIUM.rate) {
+						MATRIX_HEIGHT = MATRIX_HEIGHT_THRESHOLDS.MEDIUM.height;
+					} else {
+						MATRIX_HEIGHT = MATRIX_HEIGHT_THRESHOLDS.LARGE.height;
+					}
+				}
+
+				// Determine sampling strategy based on current generation rate
+				let samplingRate = 1.0;
+				let intensityMultiplier = 1;
+
+				if (state.generationRate > SAMPLING_THRESHOLDS.HIGH) {
+					samplingRate = 0.05; // Show 5% of pixels
+					intensityMultiplier = 20;
+				} else if (state.generationRate > SAMPLING_THRESHOLDS.MEDIUM) {
+					samplingRate = 0.1; // Show 10% of pixels
+					intensityMultiplier = 10;
+				} else if (state.generationRate > SAMPLING_THRESHOLDS.LOW) {
+					samplingRate = 0.2; // Show 20% of pixels
+					intensityMultiplier = 5;
+				}
+
+				// Sample pixels to add
+				const pixelsToAdd = Math.ceil(colors.length * samplingRate);
+				const sampledColors = colors.slice(0, pixelsToAdd);
+
 				const newPixels: StreamPixel[] = [];
 
-				colors.forEach((color) => {
+				sampledColors.forEach((color) => {
 					// Find available position at the bottom row
 					let x = Math.floor(Math.random() * MATRIX_WIDTH);
 					let attempts = 0;
@@ -56,12 +113,14 @@ function createPixelStreamStore() {
 						x,
 						y: 0,
 						opacity: 1,
+						intensity: intensityMultiplier,
 					});
 				});
 
 				return {
+					...state,
 					pixels: [...state.pixels, ...newPixels],
-					nextId: state.nextId + colors.length,
+					nextId: state.nextId + sampledColors.length,
 				};
 			});
 		},
@@ -141,6 +200,12 @@ function createPixelStreamStore() {
 			MATRIX_WIDTH = Math.max(5, width); // Minimum 5 columns, no maximum
 		},
 
+		// Get current matrix dimensions
+		getMatrixDimensions: () => ({
+			width: MATRIX_WIDTH,
+			height: MATRIX_HEIGHT
+		}),
+
 		// Get stream statistics
 		getStats: () => {
 			const state = get({ subscribe });
@@ -153,11 +218,16 @@ function createPixelStreamStore() {
 				blue: recentPixels.filter((p) => p.color === "blue").length,
 			};
 
+			// Calculate intensity-weighted counts for display
+			const intensityWeightedCount = recentPixels.reduce((sum, p) => sum + p.intensity, 0);
+
 			return {
 				totalPixels: state.pixels.length,
 				recentPixelCount: recentPixels.length,
-				pixelsPerSecond: recentPixels.length,
+				pixelsPerSecond: state.generationRate,
+				intensityWeightedRate: intensityWeightedCount,
 				colorDistribution: colorCounts,
+				sampling: state.generationRate > SAMPLING_THRESHOLDS.LOW,
 			};
 		},
 	};

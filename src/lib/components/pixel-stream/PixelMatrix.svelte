@@ -6,18 +6,24 @@ interface Props {
 	pixels: (StreamPixel | null)[][];
 	size?: "small" | "normal";
 	class?: string;
+	height?: number;
 }
 
-let { pixels, size = "normal", class: className = "" }: Props = $props();
+let { pixels, size = "normal", class: className = "", height }: Props = $props();
 
-const matrixHeight = size === "small" ? "h-[100px]" : "h-[120px]";
+// Dynamic height based on props or default
+const actualHeight = height || (size === "small" ? 10 : 12);
+const matrixHeightPx = actualHeight * (size === "small" ? 10 : 12) + 20; // Account for padding
 const rowGap = size === "small" ? "gap-1" : "gap-1.5";
 const rowHeight = size === "small" ? "h-[9px]" : "h-[10px]";
 </script>
 
-<div class="relative p-2 {matrixHeight} {className}">
-  {#each pixels as row, y}
-    <div class="flex {rowGap} {rowHeight} mb-0.5">
+<div 
+  class="relative p-2 {className}"
+  style="height: {matrixHeightPx}px; will-change: transform; transform: translateZ(0);"
+>
+  {#each pixels.slice(0, actualHeight) as row, y}
+    <div class="flex {rowGap} {rowHeight} mb-0.5" style="will-change: transform;">
       {#each row as pixel, x}
         <PixelCell {pixel} {size} />
       {/each}

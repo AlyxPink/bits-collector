@@ -260,6 +260,125 @@ function createCompositeColorsStore() {
 			return Object.values(colors).reduce((total, color) => total + color.count, 0);
 		},
 
+		// Get pure color count for a specific color
+		getPureColorCount: (color: "red" | "green" | "blue"): number => {
+			const colors = get({ subscribe });
+			switch (color) {
+				case "red":
+					return colors.crimson.count;
+				case "green":
+					return colors.emerald.count;
+				case "blue":
+					return colors.sapphire.count;
+				default:
+					return 0;
+			}
+		},
+
+		// Check if player has all three pure colors
+		hasAllPureColors: (): boolean => {
+			const colors = get({ subscribe });
+			return colors.crimson.count > 0 && colors.emerald.count > 0 && colors.sapphire.count > 0;
+		},
+
+		// Complex scaling function for pure color RGB generator multipliers
+		getPureColorMultiplier: (color: "red" | "green" | "blue"): number => {
+			const colors = get({ subscribe });
+			let pureCount = 0;
+			switch (color) {
+				case "red":
+					pureCount = colors.crimson.count;
+					break;
+				case "green":
+					pureCount = colors.emerald.count;
+					break;
+				case "blue":
+					pureCount = colors.sapphire.count;
+					break;
+			}
+			
+			if (pureCount === 0) return 1;
+
+			// Layer 1: Base logarithmic growth
+			const baseBoost = Math.pow(pureCount, 0.5) * 0.1; // Sqrt scaling
+
+			// Layer 2: Milestone bonuses at 10, 25, 50, 100, etc.
+			const milestones = [10, 25, 50, 100, 250, 500, 1000];
+			const milestoneBonus = milestones.filter((m) => pureCount >= m).length * 0.15;
+
+			// Layer 3: Diminishing returns after certain thresholds
+			let effectiveCount = pureCount;
+			if (pureCount > 100) effectiveCount = 100 + Math.pow(pureCount - 100, 0.8);
+			if (pureCount > 500) effectiveCount = 400 + Math.pow(pureCount - 500, 0.6);
+
+			// Layer 4: Synergy bonus if you have all three pure colors
+			const hasAllPure = colors.crimson.count > 0 && colors.emerald.count > 0 && colors.sapphire.count > 0;
+			const synergyBonus = hasAllPure ? Math.log10(pureCount + 1) * 0.2 : 0;
+
+			// Final calculation with soft cap smoothing
+			const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.01) + synergyBonus;
+
+			// Apply smooth soft cap (no hard walls!)
+			if (rawMultiplier > 20) return 18 + Math.pow(rawMultiplier - 20, 0.3);
+			if (rawMultiplier > 10) return 9 + Math.pow(rawMultiplier - 10, 0.5);
+			if (rawMultiplier > 5) return 5 + Math.pow(rawMultiplier - 5, 0.7);
+
+			return rawMultiplier;
+		},
+
+		// Special multiplier for random generator based on total pure colors
+		getRandomGeneratorMultiplier: (): number => {
+			const colors = get({ subscribe });
+			
+			// Get pure color counts directly
+			const redCount = colors.crimson.count;
+			const greenCount = colors.emerald.count;
+			const blueCount = colors.sapphire.count;
+			
+			if (redCount === 0 && greenCount === 0 && blueCount === 0) return 1;
+			
+			// Calculate each color's multiplier manually (to avoid recursion)
+			const calculatePureMultiplier = (count: number): number => {
+				if (count === 0) return 1;
+				
+				const baseBoost = Math.pow(count, 0.5) * 0.1;
+				const milestones = [10, 25, 50, 100, 250, 500, 1000];
+				const milestoneBonus = milestones.filter((m) => count >= m).length * 0.15;
+				
+				let effectiveCount = count;
+				if (count > 100) effectiveCount = 100 + Math.pow(count - 100, 0.8);
+				if (count > 500) effectiveCount = 400 + Math.pow(count - 500, 0.6);
+				
+				const hasAllPure = redCount > 0 && greenCount > 0 && blueCount > 0;
+				const synergyBonus = hasAllPure ? Math.log10(count + 1) * 0.2 : 0;
+				
+				const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.01) + synergyBonus;
+				
+				if (rawMultiplier > 20) return 18 + Math.pow(rawMultiplier - 20, 0.3);
+				if (rawMultiplier > 10) return 9 + Math.pow(rawMultiplier - 10, 0.5);
+				if (rawMultiplier > 5) return 5 + Math.pow(rawMultiplier - 5, 0.7);
+				
+				return rawMultiplier;
+			};
+			
+			// Base: Average of all three pure color multipliers
+			const redMult = calculatePureMultiplier(redCount);
+			const greenMult = calculatePureMultiplier(greenCount);
+			const blueMult = calculatePureMultiplier(blueCount);
+			const averageMultiplier = (redMult + greenMult + blueMult) / 3;
+
+			// Bonus: Extra multiplier if pure colors are balanced (similar counts)
+			const maxCount = Math.max(redCount, greenCount, blueCount);
+			const minCount = Math.min(redCount, greenCount, blueCount);
+			const balanceRatio = maxCount > 0 ? minCount / maxCount : 0;
+			const balanceBonus = 1 + (balanceRatio * 0.5); // Up to 50% bonus for perfect balance
+
+			// Chaos factor: Small random variance that changes each tick (±5%)
+			const chaosVariance = 0.95 + (Math.random() * 0.1); // 0.95 to 1.05
+
+			return averageMultiplier * balanceBonus * chaosVariance;
+		},
+
 		// Reset all composite colors
 		reset: () => {
 			set({ ...DEFAULT_COMPOSITE_COLORS });

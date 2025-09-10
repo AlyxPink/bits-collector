@@ -2,6 +2,7 @@
   import { compositeColors, type CompositeColor, type CompositeColorState } from "$lib/stores/compositeColors";
   import { pixels } from "$lib/stores/pixels";
   import { audio } from "$lib/stores/audio";
+  import { upgrades } from "$lib/stores/upgrades";
 
   interface Props {
     color: CompositeColor;
@@ -12,6 +13,18 @@
   let isMixing = $state(false);
   let canAfford = $derived(compositeColors.canAfford(color.id as keyof CompositeColorState));
   
+  // Get boost info for pure colors
+  let boostInfo = $derived(() => {
+    if (color.type !== "pure") return null;
+    
+    const colorMap = { crimson: "red", emerald: "green", sapphire: "blue" } as const;
+    const generatorColor = colorMap[color.id as keyof typeof colorMap];
+    if (!generatorColor) return null;
+    
+    const details = upgrades.getPureColorBoostDetails(generatorColor);
+    return details.type === "single" ? details : null;
+  });
+  
   // Build recipe display string - using colored text approach
   function getRecipeDisplay() {
     const parts = [];
@@ -19,6 +32,37 @@
     if (color.recipe.green > 0) parts.push(`${color.recipe.green}G`);
     if (color.recipe.blue > 0) parts.push(`${color.recipe.blue}B`);
     return parts.join(" + ");
+  }
+
+  // Build enhanced tooltip with boost information
+  function getTooltipText() {
+    let tooltip = `${getRecipeDisplay()} → ${color.name}`;
+    
+    const info = boostInfo();
+    if (info) {
+      const generatorName = color.id === "crimson" ? "Red" : 
+                           color.id === "emerald" ? "Green" : "Blue";
+      
+      tooltip += `\n\n🚀 Generator Boost:`;
+      if (info.pureCount === 0) {
+        tooltip += `\n  First ${color.name} will boost ${generatorName} Generator`;
+      } else {
+        const currentMult = info.currentMultiplier;
+        const nextMult = info.nextMultiplier;
+        tooltip += `\n  Current: ${currentMult.toFixed(2)}x rate boost`;
+        tooltip += `\n  Next: +1 → ${nextMult.toFixed(2)}x boost`;
+        
+        if (info.nextMilestone && info.nextMilestone - info.pureCount <= 5) {
+          tooltip += `\n  🎯 ${info.nextMilestone - info.pureCount} more to milestone!`;
+        }
+      }
+      
+      if (info.hasAllPureColors) {
+        tooltip += `\n  ✨ Synergy bonus active`;
+      }
+    }
+    
+    return tooltip;
   }
 
   // Build button classes in the style of RGB buttons
@@ -46,7 +90,7 @@
   onclick={handleMix}
   disabled={!canAfford}
   class="{getButtonClasses()} {isMixing ? 'animate-pixel-pop' : ''}"
-  title="{getRecipeDisplay()} → {color.name}"
+  title={getTooltipText()}
   tabindex="0"
 >
   <div class="flex flex-col items-center gap-2">
@@ -92,5 +136,12 @@
     <div class="text-xs opacity-75 uppercase">
       {canAfford ? 'Click to mix' : 'Need more pixels'}
     </div>
+    
+    <!-- Pure color boost hint -->
+    {#if color.type === "pure"}
+      <div class="text-xs text-yellow-300 opacity-80 flex items-center gap-1 justify-center">
+        🚀 <span>Boosts Generator</span>
+      </div>
+    {/if}
   </div>
 </button>

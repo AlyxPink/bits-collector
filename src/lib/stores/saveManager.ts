@@ -1,14 +1,14 @@
 import { get } from "svelte/store";
-import { pixels } from "./pixels";
-import { upgrades } from "./upgrades";
-import { gameStats } from "./game";
+import { pixels, type PixelCounts } from "./pixels";
+import { upgrades, type UpgradeState } from "./upgrades";
+import { gameStats, type GameStats } from "./game";
 
 export interface SaveData {
 	version: number;
 	timestamp: number;
-	pixels: any;
-	upgrades: any;
-	gameStats: any;
+	pixels: PixelCounts;
+	upgrades: UpgradeState;
+	gameStats: GameStats;
 }
 
 function encodeSave(data: SaveData): string {
@@ -37,7 +37,9 @@ function decodeSave(encodedData: string): SaveData | null {
 
 		return data;
 	} catch (error) {
-		console.error("Failed to decode save:", error);
+		if (import.meta.env.DEV) {
+			console.error("Failed to decode save:", error);
+		}
 		return null;
 	}
 }
@@ -88,7 +90,9 @@ export function importSave(fileContent: string): boolean {
 
 		return true;
 	} catch (error) {
-		console.error("Failed to import save:", error);
+		if (import.meta.env.DEV) {
+			console.error("Failed to import save:", error);
+		}
 		return false;
 	}
 }

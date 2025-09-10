@@ -55,7 +55,9 @@ function createAudioStore() {
 				preload: true,
 			});
 		} catch (error) {
-			console.warn("Audio files not found - sounds will be disabled");
+			if (import.meta.env.DEV) {
+				console.warn("Audio files not found - sounds will be disabled");
+			}
 		}
 	}
 

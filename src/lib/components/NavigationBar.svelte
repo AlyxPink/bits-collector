@@ -30,20 +30,9 @@ const WINNING_GOAL = 1.79e308; // Near JavaScript's max number
 
 <nav class="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-green-500/30 z-50">
   <div class="px-4 py-2">
-    <!-- Lumen Display - Prestige Tree Style -->
-    <div class="text-center mb-2">
-      <div class="flex items-center justify-center gap-2">
-        <span class="text-2xl">💡</span>
-        <span class="text-xl font-bold text-yellow-300">Lumens: {formatLumen($lumen.total)}</span>
-      </div>
-      <div class="text-xs text-yellow-200/70">
-        Reach {formatLumen(WINNING_GOAL)} to become the brightest light in the universe
-      </div>
-    </div>
-    
     <div class="flex justify-between items-start">
-      <!-- Multi-row Currency Display -->
-      <div class="flex flex-col gap-1">
+      <!-- Left: Multi-row Currency Display -->
+      <div class="flex flex-col gap-1 flex-shrink-0">
         <!-- Row 1: RGB + White (always visible) -->
         <div class="flex items-center gap-3 sm:gap-4">
           <div class="flex items-center gap-1">
@@ -100,7 +89,18 @@ const WINNING_GOAL = 1.79e308; // Near JavaScript's max number
         {/if}
       </div>
       
-      <!-- Settings Button -->
+      <!-- Center: Lumen Display -->
+      <div class="flex-1 text-center">
+        <div class="flex items-center justify-center gap-2">
+          <span class="text-2xl">💡</span>
+          <span class="text-xl font-bold text-yellow-300">Lumens: {formatLumen($lumen.total)}</span>
+        </div>
+        <div class="text-xs text-yellow-200/70">
+          Reach {formatLumen(WINNING_GOAL)} to become the brightest light in the universe
+        </div>
+      </div>
+      
+      <!-- Right: Settings Button -->
       <div class="flex-shrink-0">
         <SettingsButton onclick={onSettingsClick} />
       </div>

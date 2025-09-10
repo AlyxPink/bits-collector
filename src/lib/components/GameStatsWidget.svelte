@@ -2,6 +2,7 @@
 import { pixels, conversionCost, createConversionEfficiencyStore } from "$lib/stores/pixels";
 import { upgrades, tabUnlockStatus } from "$lib/stores/upgrades";
 import { gameStats } from "$lib/stores/game";
+import { compositeColors, pureColorsUnlocked } from "$lib/stores/compositeColors";
 
 // Create efficiency store
 const conversionEfficiency = createConversionEfficiencyStore(gameStats);
@@ -43,6 +44,19 @@ let showAdvanced = $state(false);
 
 // Track recent tab unlocks for visual feedback
 let recentUnlock = $state<string | null>(null);
+
+// Pure colors and Spectrum Synergy information
+const pureColors = $derived(compositeColors.getUnlockedPureColors());
+const crimsonCount = $derived($compositeColors.crimson.unlocked ? $compositeColors.crimson.count : 0);
+const emeraldCount = $derived($compositeColors.emerald.unlocked ? $compositeColors.emerald.count : 0);
+const sapphireCount = $derived($compositeColors.sapphire.unlocked ? $compositeColors.sapphire.count : 0);
+const hasSpectrumSynergy = $derived(compositeColors.hasAllPureColors());
+const randomGeneratorMultiplier = $derived(compositeColors.getRandomGeneratorMultiplier());
+
+// Calculate balance ratio for pure colors
+const maxPureCount = $derived(Math.max(crimsonCount, emeraldCount, sapphireCount));
+const minPureCount = $derived(Math.min(crimsonCount, emeraldCount, sapphireCount));
+const balanceRatio = $derived(maxPureCount > 0 ? minPureCount / maxPureCount : 0);
 
 // Clear recent unlock notification after 3 seconds
 $effect(() => {
@@ -173,6 +187,54 @@ $effect(() => {
 			{/if}
 		</div>
 	</div>
+	
+	<!-- Pure Colors & Spectrum Synergy (only if unlocked) -->
+	{#if $pureColorsUnlocked}
+		<div class="border-b border-purple-500/20 pb-2">
+			<div class="text-purple-400 font-bold mb-1.5 flex items-center gap-1">
+				🌈 Pure Colors
+				<span class="text-xs text-gray-400 cursor-help" title="Pure colors boost their matching RGB generators. Having all three active provides Spectrum Synergy bonus to Random Generator!">ℹ️</span>
+			</div>
+			<div class="space-y-1">
+				<div class="flex justify-between">
+					<span class="text-gray-400">Crimson:</span>
+					<span class="text-red-400 tabular-nums">{crimsonCount}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-gray-400">Emerald:</span>
+					<span class="text-emerald-400 tabular-nums">{emeraldCount}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-gray-400">Sapphire:</span>
+					<span class="text-blue-400 tabular-nums">{sapphireCount}</span>
+				</div>
+				<div class="flex justify-between">
+					<span class="text-gray-400">Spectrum Synergy:</span>
+					<span class="{hasSpectrumSynergy ? 'text-rainbow-400 font-bold' : 'text-gray-500'} text-xs">
+						{hasSpectrumSynergy ? '✨ Active' : '🔒 Inactive'}
+					</span>
+				</div>
+				{#if hasSpectrumSynergy}
+					<div class="flex justify-between">
+						<span class="text-gray-400">Random Gen Boost:</span>
+						<span class="text-purple-300 tabular-nums font-bold">
+							{randomGeneratorMultiplier.toFixed(2)}x
+						</span>
+					</div>
+					<div class="flex justify-between">
+						<span class="text-gray-400">Balance:</span>
+						<span class="tabular-nums {balanceRatio > 0.8 ? 'text-green-400' : balanceRatio > 0.5 ? 'text-yellow-400' : 'text-orange-400'}">
+							{(balanceRatio * 100).toFixed(0)}%
+						</span>
+					</div>
+				{:else if pureColors.length > 0}
+					<div class="text-xs text-gray-500 mt-1">
+						💡 Create all 3 pure colors to activate Spectrum Synergy
+					</div>
+				{/if}
+			</div>
+		</div>
+	{/if}
 	
 	<!-- Advanced Stats (collapsible) -->
 	<details bind:open={showAdvanced} class="cursor-pointer">

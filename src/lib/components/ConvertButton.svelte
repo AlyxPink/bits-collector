@@ -5,6 +5,7 @@ import { audio } from "$lib/stores/audio";
 import { inputController } from "$lib/stores/inputController";
 import { lumen } from "$lib/stores/lumen";
 import { upgrades } from "$lib/stores/upgrades";
+import { getWhiteConversionRecipe } from "$lib/utils/recipes";
 
 let isConverting = $state(false);
 let buttonElement: HTMLButtonElement;
@@ -98,6 +99,9 @@ function handleKeyDown(event: KeyboardEvent) {
           </span>
         {/if}
       </span>
+    </div>
+    <div class="text-xs mt-1 opacity-75 font-mono">
+      {getWhiteConversionRecipe()}
     </div>
   </div>
 </button>

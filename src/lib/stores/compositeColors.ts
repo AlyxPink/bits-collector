@@ -1,11 +1,14 @@
 import { writable, derived, get } from "svelte/store";
 import { pixels } from "./pixels";
 import { 
-	DEFAULT_MIXED_COLOR_UNLOCKS, 
-	DEFAULT_PURE_COLOR_UNLOCKS,
-	calculateUnlockCost,
+	DEFAULT_MIXED_COLOR_UNLOCKS,
 	MIXED_COLOR_UNLOCK_ORDER,
-	PURE_COLOR_UNLOCK_ORDER
+	calculateMixedColorUnlockCost
+} from "$lib/config/gameConfig";
+import { 
+	DEFAULT_PURE_COLOR_UNLOCKS,
+	PURE_COLOR_UNLOCK_ORDER,
+	calculatePureColorUnlockCost
 } from "$lib/config/gameConfig";
 
 // Recipe types for different color combinations
@@ -218,7 +221,11 @@ function createCompositeColorsStore() {
 			const unlockedCount = Object.values(currentColors)
 				.filter(c => c.type === colorType && c.unlocked).length;
 
-			return calculateUnlockCost(colorType, unlockedCount);
+			if (colorType === "mixed") {
+				return calculateMixedColorUnlockCost(unlockedCount);
+			} else {
+				return calculatePureColorUnlockCost(unlockedCount, colorId as 'crimson' | 'emerald' | 'sapphire');
+			}
 		},
 
 		// Check if player can afford to unlock a specific color
@@ -232,7 +239,9 @@ function createCompositeColorsStore() {
 			const unlockedCount = Object.values(currentColors)
 				.filter(c => c.type === colorType && c.unlocked).length;
 
-			const cost = calculateUnlockCost(colorType, unlockedCount);
+			const cost = colorType === "mixed" 
+				? calculateMixedColorUnlockCost(unlockedCount)
+				: calculatePureColorUnlockCost(unlockedCount, colorId as 'crimson' | 'emerald' | 'sapphire');
 			
 			return (
 				currentPixels.red >= cost.red &&
@@ -253,7 +262,9 @@ function createCompositeColorsStore() {
 			const unlockedCount = Object.values(currentColors)
 				.filter(c => c.type === colorType && c.unlocked).length;
 
-			const cost = calculateUnlockCost(colorType, unlockedCount);
+			const cost = colorType === "mixed" 
+				? calculateMixedColorUnlockCost(unlockedCount)
+				: calculatePureColorUnlockCost(unlockedCount, colorId as 'crimson' | 'emerald' | 'sapphire');
 			
 			// Check if we can afford the unlock
 			if (

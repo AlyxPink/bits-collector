@@ -6,6 +6,7 @@
 	import { pixels } from "$lib/stores/pixels";
 	import { audio } from "$lib/stores/audio";
 	import { type ColorVariant } from "$lib/utils/colors";
+	import { getAutoConverterRecipe } from "$lib/utils/recipes";
 	import GameCard from "$lib/components/ui/GameCard.svelte";
 	import GameButton from "$lib/components/ui/GameButton.svelte";
 
@@ -59,31 +60,7 @@
 
 	// Get conversion recipe text
 	let recipeText = $derived(
-		converter.type === "white"
-			? "1R + 1G + 1B → 1W"
-			: converter.type === "pure"
-				? converter.targetColor === "crimson"
-					? "3R → 1 Crimson"
-					: converter.targetColor === "emerald"
-						? "3G → 1 Emerald"
-						: converter.targetColor === "sapphire"
-							? "3B → 1 Sapphire"
-							: ""
-				: converter.type === "mixed"
-					? converter.targetColor === "orange"
-						? "2R + 1G → 1 Orange"
-						: converter.targetColor === "purple"
-							? "2R + 1B → 1 Purple"
-							: converter.targetColor === "yellow"
-								? "1R + 2G → 1 Yellow"
-								: converter.targetColor === "cyan"
-									? "1G + 2B → 1 Cyan"
-									: converter.targetColor === "magenta"
-										? "1R + 2B → 1 Magenta"
-										: converter.targetColor === "lime"
-											? "2G + 1B → 1 Lime"
-											: ""
-					: "",
+		getAutoConverterRecipe(converter.type, converter.targetColor)
 	);
 
 	function handlePurchase() {

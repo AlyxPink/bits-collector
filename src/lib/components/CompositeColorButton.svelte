@@ -3,6 +3,7 @@
   import { pixels } from "$lib/stores/pixels";
   import { audio } from "$lib/stores/audio";
   import { upgrades } from "$lib/stores/upgrades";
+  import { formatRecipeComponents, getCompositeColorRecipe } from "$lib/utils/recipes";
 
   interface Props {
     color: CompositeColor;
@@ -27,13 +28,9 @@
     return details.type === "single" ? details : null;
   });
   
-  // Build recipe display string - using colored text approach
+  // Build recipe display string - using utility function
   function getRecipeDisplay() {
-    const parts = [];
-    if (color.recipe.red > 0) parts.push(`${color.recipe.red}R`);
-    if (color.recipe.green > 0) parts.push(`${color.recipe.green}G`);
-    if (color.recipe.blue > 0) parts.push(`${color.recipe.blue}B`);
-    return parts.join(" + ");
+    return formatRecipeComponents(color.recipe);
   }
 
   // Build enhanced tooltip with unlock/boost information

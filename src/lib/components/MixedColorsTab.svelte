@@ -1,6 +1,7 @@
 <script lang="ts">
   import { mixedColors, compositeColors } from "$lib/stores/compositeColors";
   import { pureColorsUnlocked } from "$lib/stores/compositeColors";
+  import { formatRecipeComponents } from "$lib/utils/recipes";
   import CompositeColorButton from "./CompositeColorButton.svelte";
 
   let mixedColorsList = $derived($mixedColors);
@@ -42,7 +43,7 @@
     {#if nextToUnlock}
       <div class="bg-orange-900/20 border border-orange-500/30 rounded p-3 mt-4">
         <p class="text-orange-300 font-bold">💡 Strategic Tip:</p>
-        <p class="text-gray-300">Unlock {nextToUnlock.name} next to access {nextToUnlock.recipe.red}R + {nextToUnlock.recipe.green}G + {nextToUnlock.recipe.blue}B mixing</p>
+        <p class="text-gray-300">Unlock {nextToUnlock.name} next to access {formatRecipeComponents(nextToUnlock.recipe)} mixing</p>
       </div>
     {/if}
     

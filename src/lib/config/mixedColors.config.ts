@@ -1,8 +1,9 @@
 import type { CompositeColorUnlockConfig } from "./types";
 
-// Composite color unlock system configuration
+// Mixed color unlock system configuration
 // Creates an RGB sink by requiring players to pay RGB pixels to unlock each color
-export const COMPOSITE_COLOR_UNLOCK_CONFIG: CompositeColorUnlockConfig = {
+// Mixed colors use even distribution across RGB since they blend all colors
+export const MIXED_COLOR_UNLOCK_CONFIG: CompositeColorUnlockConfig = {
 	mixed: {
 		baseCost: 1000,      // First mixed color costs 1000 RGB total
 		costMultiplier: 1.8,  // Each subsequent unlock costs 1.8x more
@@ -17,7 +18,7 @@ export const COMPOSITE_COLOR_UNLOCK_CONFIG: CompositeColorUnlockConfig = {
 	},
 };
 
-// Default unlock states - first mixed and pure colors unlocked by default
+// Default unlock states - first mixed color unlocked by default
 export const DEFAULT_MIXED_COLOR_UNLOCKS = {
 	orange: true,   // Start with orange unlocked
 	purple: false,
@@ -27,27 +28,16 @@ export const DEFAULT_MIXED_COLOR_UNLOCKS = {
 	lime: false,
 };
 
-export const DEFAULT_PURE_COLOR_UNLOCKS = {
-	crimson: false,  // All pure colors start locked
-	emerald: false,
-	sapphire: false,
-};
-
-// Color unlock order (affects which ones appear first in UI)
+// Mixed color unlock order (affects which ones appear first in UI)
 export const MIXED_COLOR_UNLOCK_ORDER = [
 	"orange", "yellow", "cyan", "purple", "magenta", "lime"
 ] as const;
 
-export const PURE_COLOR_UNLOCK_ORDER = [
-	"crimson", "emerald", "sapphire"
-] as const;
-
-// Formula for calculating unlock cost based on number already unlocked
-export function calculateUnlockCost(
-	colorType: "mixed" | "pure", 
+// Formula for calculating mixed color unlock cost with even RGB distribution
+export function calculateMixedColorUnlockCost(
 	unlockedCount: number
 ): { red: number; green: number; blue: number; total: number } {
-	const config = COMPOSITE_COLOR_UNLOCK_CONFIG[colorType];
+	const config = MIXED_COLOR_UNLOCK_CONFIG.mixed;
 	
 	// Calculate raw cost with exponential scaling
 	let rawCost = config.baseCost * Math.pow(config.costMultiplier, unlockedCount);
@@ -64,7 +54,7 @@ export function calculateUnlockCost(
 	const logComponent = Math.log10(unlockedCount + 10) * 0.2;
 	const finalCost = Math.ceil(rawCost * (1 + logComponent));
 	
-	// Distribute cost across RGB (roughly equal but with small variations)
+	// Distribute cost evenly across RGB for mixed colors (roughly equal)
 	const redCost = Math.ceil(finalCost * 0.35);
 	const greenCost = Math.ceil(finalCost * 0.33); 
 	const blueCost = Math.ceil(finalCost * 0.32);

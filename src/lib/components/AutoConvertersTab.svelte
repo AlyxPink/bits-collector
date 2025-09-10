@@ -4,6 +4,11 @@
 
   let convertersList = $derived($unlockedConverters);
   let activeConvertersList = $derived($activeConverters);
+
+  // Group converters by type for separate row display
+  let whiteConverters = $derived(convertersList.filter(c => c.type === "white"));
+  let mixedConverters = $derived(convertersList.filter(c => c.type === "mixed"));
+  let pureConverters = $derived(convertersList.filter(c => c.type === "pure"));
 </script>
 
 <div class="h-full flex flex-col">
@@ -33,13 +38,51 @@
       </div>
     </div>
   {:else}
-    <!-- Converters Grid -->
-    <div class="flex-1 overflow-y-auto">
-      <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        {#each convertersList as converter}
-          <AutoConverterUpgrade {converter} />
-        {/each}
-      </div>
+    <!-- Converters Sections -->
+    <div class="flex-1 overflow-y-auto space-y-8">
+      
+      <!-- White Pixel Converters - Row 1 -->
+      {#if whiteConverters.length > 0}
+        <div>
+          <h3 class="text-lg font-bold uppercase tracking-wide text-white mb-4 opacity-75">
+            White Pixel Converters
+          </h3>
+          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {#each whiteConverters as converter}
+              <AutoConverterUpgrade {converter} />
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      <!-- Mixed Color Converters - Row 2 -->
+      {#if mixedConverters.length > 0}
+        <div>
+          <h3 class="text-lg font-bold uppercase tracking-wide text-green-400 mb-4 opacity-75">
+            Mixed Color Converters
+          </h3>
+          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {#each mixedConverters as converter}
+              <AutoConverterUpgrade {converter} />
+            {/each}
+          </div>
+        </div>
+      {/if}
+
+      <!-- Pure Color Converters - Row 3 -->
+      {#if pureConverters.length > 0}
+        <div>
+          <h3 class="text-lg font-bold uppercase tracking-wide text-purple-400 mb-4 opacity-75">
+            Pure Color Converters
+          </h3>
+          <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {#each pureConverters as converter}
+              <AutoConverterUpgrade {converter} />
+            {/each}
+          </div>
+        </div>
+      {/if}
+      
     </div>
 
     <!-- Information Panel -->

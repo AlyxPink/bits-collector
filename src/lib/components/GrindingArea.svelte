@@ -21,17 +21,17 @@
       unlocked: true,
     },
     {
-      id: "pure" as const,
-      label: "Pure",
-      iconType: "diamond" as const,
-      unlocked: $pureColorsUnlocked,
-      requirement: 25,
-    },
-    {
       id: "mixed" as const,
       label: "Mixed",
       iconType: "gradient" as const,
       unlocked: $mixedColorsUnlocked,
+      requirement: 25,
+    },
+    {
+      id: "pure" as const,
+      label: "Pure",
+      iconType: "diamond" as const,
+      unlocked: $pureColorsUnlocked,
       requirement: 50,
     },
   ]);

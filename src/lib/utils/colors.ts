@@ -5,7 +5,14 @@ export type ColorVariant =
 	| "purple"
 	| "yellow"
 	| "white"
-	| "gray";
+	| "gray"
+	| "orange"
+	| "cyan"
+	| "magenta"
+	| "lime"
+	| "crimson"
+	| "emerald"
+	| "sapphire";
 
 export interface ColorTheme {
 	border: string;
@@ -56,6 +63,48 @@ export const colorThemes: Record<ColorVariant, ColorTheme> = {
 		text: "text-gray-400",
 		bg: "bg-gray-500/10",
 		shadowColor: "107, 114, 128",
+	},
+	orange: {
+		border: "border-orange-500",
+		text: "text-orange-400",
+		bg: "bg-orange-500/10",
+		shadowColor: "251, 146, 60",
+	},
+	cyan: {
+		border: "border-cyan-500",
+		text: "text-cyan-400",
+		bg: "bg-cyan-500/10",
+		shadowColor: "34, 211, 238",
+	},
+	magenta: {
+		border: "border-pink-500",
+		text: "text-pink-400",
+		bg: "bg-pink-500/10",
+		shadowColor: "236, 72, 153",
+	},
+	lime: {
+		border: "border-lime-500",
+		text: "text-lime-400",
+		bg: "bg-lime-500/10",
+		shadowColor: "132, 204, 22",
+	},
+	crimson: {
+		border: "border-red-700",
+		text: "text-red-600",
+		bg: "bg-red-700/10",
+		shadowColor: "185, 28, 28",
+	},
+	emerald: {
+		border: "border-emerald-600",
+		text: "text-emerald-500",
+		bg: "bg-emerald-600/10",
+		shadowColor: "5, 150, 105",
+	},
+	sapphire: {
+		border: "border-blue-700",
+		text: "text-blue-600",
+		bg: "bg-blue-700/10",
+		shadowColor: "29, 78, 216",
 	},
 };
 

@@ -22,33 +22,63 @@ let nextLevelRate = $derived(
 		: converter.baseRate * Math.pow(converter.rateMultiplier, converter.level)
 );
 
-// Get variant color based on converter type
+// Get variant color based on converter type and target color
 let cardVariant: ColorVariant = $derived(
 	converter.type === "white" 
-		? "white" 
-		: converter.type === "pure" 
-			? "blue" 
-			: "green"
+		? "white"
+		: converter.type === "pure"
+			? converter.targetColor === "crimson"
+				? "crimson"
+				: converter.targetColor === "emerald"
+					? "emerald"
+					: converter.targetColor === "sapphire"
+						? "sapphire"
+						: "blue" // fallback
+			: converter.type === "mixed"
+				? converter.targetColor === "orange"
+					? "orange"
+					: converter.targetColor === "purple"
+						? "purple"
+						: converter.targetColor === "yellow"
+							? "yellow"
+							: converter.targetColor === "cyan"
+								? "cyan"
+								: converter.targetColor === "magenta"
+									? "magenta"
+									: converter.targetColor === "lime"
+										? "lime"
+										: "green" // fallback
+				: "gray" // fallback
 );
 
 // Get conversion recipe text
-let recipeText = $derived(() => {
-	if (converter.type === "white") {
-		return "1R + 1G + 1B → 1W";
-	} else if (converter.type === "pure") {
-		if (converter.targetColor === "crimson") return "3R → 1 Crimson";
-		if (converter.targetColor === "emerald") return "3G → 1 Emerald";  
-		if (converter.targetColor === "sapphire") return "3B → 1 Sapphire";
-	} else if (converter.type === "mixed") {
-		if (converter.targetColor === "orange") return "2R + 1G → 1 Orange";
-		if (converter.targetColor === "purple") return "2R + 1B → 1 Purple";
-		if (converter.targetColor === "yellow") return "1R + 2G → 1 Yellow";
-		if (converter.targetColor === "cyan") return "1G + 2B → 1 Cyan";
-		if (converter.targetColor === "magenta") return "1R + 2B → 1 Magenta";
-		if (converter.targetColor === "lime") return "2G + 1B → 1 Lime";
-	}
-	return "";
-});
+let recipeText = $derived(
+	converter.type === "white" 
+		? "1R + 1G + 1B → 1W"
+		: converter.type === "pure"
+			? converter.targetColor === "crimson" 
+				? "3R → 1 Crimson"
+				: converter.targetColor === "emerald"
+					? "3G → 1 Emerald"
+					: converter.targetColor === "sapphire"
+						? "3B → 1 Sapphire"
+						: ""
+			: converter.type === "mixed"
+				? converter.targetColor === "orange"
+					? "2R + 1G → 1 Orange"
+					: converter.targetColor === "purple"
+						? "2R + 1B → 1 Purple"
+						: converter.targetColor === "yellow"
+							? "1R + 2G → 1 Yellow"
+							: converter.targetColor === "cyan"
+								? "1G + 2B → 1 Cyan"
+								: converter.targetColor === "magenta"
+									? "1R + 2B → 1 Magenta"
+									: converter.targetColor === "lime"
+										? "2G + 1B → 1 Lime"
+										: ""
+				: ""
+);
 
 function handlePurchase() {
 	if (!canAfford || isPurchasing || converter.level >= converter.maxLevel) return;

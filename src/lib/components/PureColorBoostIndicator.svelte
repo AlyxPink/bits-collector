@@ -67,10 +67,11 @@
 </script>
 
 {#if boostDetails().currentMultiplier > 1}
+  {@const details = boostDetails()}
   <div class="pure-boost-indicator {colorClasses} {glowClass}" 
-       title={boostDetails().type === "single" ? 
-         `${boostName} Boost: ${boostDetails().pureCount} pure colors\n${boostDetails().nextMilestone ? `Next milestone at ${boostDetails().nextMilestone}` : "Max milestones reached"}` :
-         `Spectrum Boost: Balanced colors for maximum effect\nRed: ${boostDetails().redCount}, Green: ${boostDetails().greenCount}, Blue: ${boostDetails().blueCount}`
+       title={details.type === "single" ? 
+         `${boostName} Boost: ${details.pureCount} pure colors\n${details.nextMilestone ? `Next milestone at ${details.nextMilestone}` : "Max milestones reached"}` :
+         `Spectrum Boost: Balanced colors for maximum effect\nRed: ${details.redCount}, Green: ${details.greenCount}, Blue: ${details.blueCount}`
        }>
     <div class="flex items-center gap-2">
       <span class="text-sm">{boostEmoji}</span>
@@ -79,23 +80,22 @@
           {boostName} Boost
         </div>
         <div class="text-sm font-bold">
-          {formatMultiplier(boostDetails().currentMultiplier)}
+          {formatMultiplier(details.currentMultiplier)}
         </div>
       </div>
     </div>
-
-    {#if boostDetails().type === "single"}
+    {#if details.type === "single"}
       <!-- Single color boost details -->
-      {#if boostDetails().nextMilestone}
+      {#if details.nextMilestone && details.nextMultiplier}
         <div class="text-xs opacity-75 mt-1">
-          Next: +1 → {formatMultiplier(boostDetails().nextMultiplier)}
-          {#if boostDetails().nextMilestone - boostDetails().pureCount <= 5}
-            <span class="text-yellow-400">({boostDetails().nextMilestone - boostDetails().pureCount} to milestone!)</span>
+          Next: +1 → {formatMultiplier(details.nextMultiplier)}
+          {#if details.nextMilestone - details.pureCount <= 5}
+            <span class="text-yellow-400">({details.nextMilestone - details.pureCount} to milestone!)</span>
           {/if}
         </div>
       {/if}
       
-      {#if boostDetails().hasAllPureColors}
+      {#if details.hasAllPureColors}
         <div class="text-xs text-yellow-300 mt-1 flex items-center gap-1">
           ✨ <span>Synergy Active</span>
         </div>
@@ -103,8 +103,8 @@
     {:else}
       <!-- Random generator boost details -->
       <div class="text-xs opacity-75 mt-1">
-        Balance: {(boostDetails().balanceRatio * 100).toFixed(0)}%
-        {#if boostDetails().hasBalance}
+        Balance: {(details.balanceRatio * 100).toFixed(0)}%
+        {#if details.hasBalance}
           <span class="text-green-300">🎯</span>
         {/if}
       </div>

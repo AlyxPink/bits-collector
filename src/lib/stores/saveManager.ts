@@ -97,9 +97,17 @@ export function importSave(fileContent: string): boolean {
 	}
 }
 
+export function checkAndClearIfNeeded(): void {
+	if (typeof window === "undefined") return;
+
+	if (localStorage.getItem("needsReset") === "true") {
+		localStorage.clear();
+	}
+}
+
 export function resetGame(): void {
-	// Clear all localStorage
-	localStorage.clear();
+	// Set a flag that persists through reload
+	localStorage.setItem("needsReset", "true");
 
 	// Reload the page to reset everything
 	window.location.reload();

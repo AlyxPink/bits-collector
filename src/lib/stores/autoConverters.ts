@@ -43,8 +43,8 @@ const DEFAULT_AUTO_CONVERTERS: AutoConverterState = {
 		maxLevel: 10,
 		baseCost: 5,
 		costMultiplier: 2.5,
-		baseRate: 0.5,
-		rateMultiplier: 1.8,
+		baseRate: 0.2,
+		rateMultiplier: 1.5,
 		unlockRequirement: 10,
 		enabled: false,
 	},
@@ -288,6 +288,40 @@ function createAutoConvertersStore() {
 					enabled: !converters[converterId].enabled,
 				},
 			}));
+		},
+
+		// Pause all active converters
+		pauseAllConverters: (): void => {
+			update((converters) => {
+				const updatedConverters = { ...converters };
+				Object.keys(updatedConverters).forEach(key => {
+					const converterId = key as keyof AutoConverterState;
+					if (updatedConverters[converterId].level > 0) {
+						updatedConverters[converterId] = {
+							...updatedConverters[converterId],
+							enabled: false,
+						};
+					}
+				});
+				return updatedConverters;
+			});
+		},
+
+		// Resume all purchased converters
+		resumeAllConverters: (): void => {
+			update((converters) => {
+				const updatedConverters = { ...converters };
+				Object.keys(updatedConverters).forEach(key => {
+					const converterId = key as keyof AutoConverterState;
+					if (updatedConverters[converterId].level > 0) {
+						updatedConverters[converterId] = {
+							...updatedConverters[converterId],
+							enabled: true,
+						};
+					}
+				});
+				return updatedConverters;
+			});
 		},
 
 		// Check if converter is unlocked

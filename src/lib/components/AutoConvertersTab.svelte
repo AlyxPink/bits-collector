@@ -1,14 +1,31 @@
 <script lang="ts">
-  import { unlockedConverters, activeConverters } from "$lib/stores/autoConverters";
+  import { unlockedConverters, activeConverters, autoConverters } from "$lib/stores/autoConverters";
+  import { audio } from "$lib/stores/audio";
   import AutoConverterUpgrade from "./AutoConverterUpgrade.svelte";
+  import GameButton from "$lib/components/ui/GameButton.svelte";
 
   let convertersList = $derived($unlockedConverters);
   let activeConvertersList = $derived($activeConverters);
+  let purchasedConverters = $derived(convertersList.filter(c => c.level > 0));
 
   // Group converters by type for separate row display
   let whiteConverters = $derived(convertersList.filter(c => c.type === "white"));
   let mixedConverters = $derived(convertersList.filter(c => c.type === "mixed"));
   let pureConverters = $derived(convertersList.filter(c => c.type === "pure"));
+
+  let allConvertersPaused = $derived(
+    purchasedConverters.length > 0 && purchasedConverters.every(c => !c.enabled)
+  );
+
+  function handlePauseAll() {
+    autoConverters.pauseAllConverters();
+    audio.playPixelSound("red");
+  }
+
+  function handleResumeAll() {
+    autoConverters.resumeAllConverters();
+    audio.playPixelSound("blue");
+  }
 </script>
 
 <div class="h-full flex flex-col">
@@ -17,12 +34,40 @@
       Auto Converters
     </h2>
     {#if activeConvertersList.length > 0}
-      <div class="text-sm text-green-400">
+      <div class="text-sm text-green-400 mb-3">
         {activeConvertersList.length} active converter{activeConvertersList.length === 1 ? '' : 's'} running
       </div>
     {:else}
-      <div class="text-sm text-gray-400">
+      <div class="text-sm text-gray-400 mb-3">
         No active converters
+      </div>
+    {/if}
+    
+    {#if purchasedConverters.length > 0}
+      <div class="flex justify-center">
+        {#if allConvertersPaused}
+          <GameButton 
+            color="blue" 
+            onclick={handleResumeAll}
+            class="px-6 py-2"
+          >
+            <div class="flex items-center gap-2">
+              <span>▶️</span>
+              <span>Resume All</span>
+            </div>
+          </GameButton>
+        {:else}
+          <GameButton 
+            color="red" 
+            onclick={handlePauseAll}
+            class="px-6 py-2"
+          >
+            <div class="flex items-center gap-2">
+              <span>⏸️</span>
+              <span>Pause All</span>
+            </div>
+          </GameButton>
+        {/if}
       </div>
     {/if}
   </div>

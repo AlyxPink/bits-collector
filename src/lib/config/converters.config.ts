@@ -4,11 +4,11 @@ import type { AutoConverterConfig } from "./types";
 export const AUTO_CONVERTER_CONFIG: Record<string, AutoConverterConfig> = {
 	// White converter
 	whiteConverter: {
-		baseCost: 5,
-		costMultiplier: 2.5,
-		baseRate: 0.2,
+		baseCost: 3,
+		costMultiplier: 2.25,
+		baseRate: 0.8,
 		rateMultiplier: 1.5,
-		maxLevel: 10,
+		maxLevel: 20,
 		unlockRequirement: 10,
 	},
 

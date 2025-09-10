@@ -4,23 +4,23 @@ import type { GeneratorConfig, PowerupConfig, BreakthroughConfig, TabUnlockConfi
 export const GENERATOR_CONFIG: Record<string, GeneratorConfig> = {
 	red: {
 		baseRate: 0.5,
-		baseCost: 10,
-		costMultiplier: 1.5,
+		baseCost: 3,
+		costMultiplier: 1.25,
 	},
 	green: {
 		baseRate: 0.5,
-		baseCost: 10,
-		costMultiplier: 1.5,
+		baseCost: 3,
+		costMultiplier: 1.25,
 	},
 	blue: {
 		baseRate: 0.5,
-		baseCost: 10,
-		costMultiplier: 1.5,
+		baseCost: 3,
+		costMultiplier: 1.25,
 	},
 	random: {
-		baseRate: 1.0,
-		baseCost: 25,
-		costMultiplier: 1.8,
+		baseRate: 0.9,
+		baseCost: 5,
+		costMultiplier: 1.6,
 	},
 };
 
@@ -55,7 +55,7 @@ export const BREAKTHROUGH_CONFIG: Record<string, BreakthroughConfig> = {
 		baseCost: 100,
 	},
 	efficiency2: {
-		type: "efficiency", 
+		type: "efficiency",
 		effect: 1.25,
 		baseCost: 2500,
 	},

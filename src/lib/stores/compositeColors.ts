@@ -1,5 +1,12 @@
 import { writable, derived, get } from "svelte/store";
 import { pixels } from "./pixels";
+import { 
+	DEFAULT_MIXED_COLOR_UNLOCKS, 
+	DEFAULT_PURE_COLOR_UNLOCKS,
+	calculateUnlockCost,
+	MIXED_COLOR_UNLOCK_ORDER,
+	PURE_COLOR_UNLOCK_ORDER
+} from "$lib/config/gameConfig";
 
 // Recipe types for different color combinations
 export interface ColorRecipe {
@@ -14,6 +21,7 @@ export interface CompositeColor {
 	type: "mixed" | "pure";
 	recipe: ColorRecipe;
 	count: number;
+	unlocked: boolean;
 	// CSS styling properties for retro button style
 	borderColor: string; // Border color class
 	textColor: string; // Text color class  
@@ -46,6 +54,7 @@ const DEFAULT_COMPOSITE_COLORS: CompositeColorState = {
 		type: "mixed",
 		recipe: { red: 2, green: 1, blue: 0 },
 		count: 0,
+		unlocked: DEFAULT_MIXED_COLOR_UNLOCKS.orange,
 		borderColor: "border-orange-500",
 		textColor: "text-orange-400", 
 		bgColor: "bg-orange-500/10",
@@ -59,6 +68,7 @@ const DEFAULT_COMPOSITE_COLORS: CompositeColorState = {
 		type: "mixed",
 		recipe: { red: 2, green: 0, blue: 1 },
 		count: 0,
+		unlocked: DEFAULT_MIXED_COLOR_UNLOCKS.purple,
 		borderColor: "border-purple-500",
 		textColor: "text-purple-400",
 		bgColor: "bg-purple-500/10", 
@@ -72,6 +82,7 @@ const DEFAULT_COMPOSITE_COLORS: CompositeColorState = {
 		type: "mixed",
 		recipe: { red: 1, green: 2, blue: 0 },
 		count: 0,
+		unlocked: DEFAULT_MIXED_COLOR_UNLOCKS.yellow,
 		borderColor: "border-yellow-500",
 		textColor: "text-yellow-400",
 		bgColor: "bg-yellow-500/10",
@@ -85,6 +96,7 @@ const DEFAULT_COMPOSITE_COLORS: CompositeColorState = {
 		type: "mixed",
 		recipe: { red: 0, green: 1, blue: 2 },
 		count: 0,
+		unlocked: DEFAULT_MIXED_COLOR_UNLOCKS.cyan,
 		borderColor: "border-cyan-500",
 		textColor: "text-cyan-400",
 		bgColor: "bg-cyan-500/10",
@@ -98,6 +110,7 @@ const DEFAULT_COMPOSITE_COLORS: CompositeColorState = {
 		type: "mixed",
 		recipe: { red: 1, green: 0, blue: 2 },
 		count: 0,
+		unlocked: DEFAULT_MIXED_COLOR_UNLOCKS.magenta,
 		borderColor: "border-pink-500",
 		textColor: "text-pink-400",
 		bgColor: "bg-pink-500/10",
@@ -111,6 +124,7 @@ const DEFAULT_COMPOSITE_COLORS: CompositeColorState = {
 		type: "mixed", 
 		recipe: { red: 0, green: 2, blue: 1 },
 		count: 0,
+		unlocked: DEFAULT_MIXED_COLOR_UNLOCKS.lime,
 		borderColor: "border-lime-500",
 		textColor: "text-lime-400",
 		bgColor: "bg-lime-500/10",
@@ -125,6 +139,7 @@ const DEFAULT_COMPOSITE_COLORS: CompositeColorState = {
 		type: "pure",
 		recipe: { red: 3, green: 0, blue: 0 },
 		count: 0,
+		unlocked: DEFAULT_PURE_COLOR_UNLOCKS.crimson,
 		borderColor: "border-red-700",
 		textColor: "text-red-600",
 		bgColor: "bg-red-700/10",
@@ -138,6 +153,7 @@ const DEFAULT_COMPOSITE_COLORS: CompositeColorState = {
 		type: "pure",
 		recipe: { red: 0, green: 3, blue: 0 },
 		count: 0,
+		unlocked: DEFAULT_PURE_COLOR_UNLOCKS.emerald,
 		borderColor: "border-emerald-600",
 		textColor: "text-emerald-500",
 		bgColor: "bg-emerald-600/10",
@@ -151,6 +167,7 @@ const DEFAULT_COMPOSITE_COLORS: CompositeColorState = {
 		type: "pure",
 		recipe: { red: 0, green: 0, blue: 3 },
 		count: 0,
+		unlocked: DEFAULT_PURE_COLOR_UNLOCKS.sapphire,
 		borderColor: "border-blue-700",
 		textColor: "text-blue-600",
 		bgColor: "bg-blue-700/10",
@@ -191,13 +208,108 @@ function createCompositeColorsStore() {
 	return {
 		subscribe,
 
+		// Get unlock cost for a specific color
+		getUnlockCost: (colorId: keyof CompositeColorState): { red: number; green: number; blue: number; total: number } => {
+			const currentColors = get({ subscribe });
+			const color = currentColors[colorId];
+			if (!color) return { red: 0, green: 0, blue: 0, total: 0 };
+
+			const colorType = color.type;
+			const unlockedCount = Object.values(currentColors)
+				.filter(c => c.type === colorType && c.unlocked).length;
+
+			return calculateUnlockCost(colorType, unlockedCount);
+		},
+
+		// Check if player can afford to unlock a specific color
+		canAffordUnlock: (colorId: keyof CompositeColorState): boolean => {
+			const currentPixels = get(pixels);
+			const currentColors = get({ subscribe });
+			const color = currentColors[colorId];
+			if (!color) return false;
+
+			const colorType = color.type;
+			const unlockedCount = Object.values(currentColors)
+				.filter(c => c.type === colorType && c.unlocked).length;
+
+			const cost = calculateUnlockCost(colorType, unlockedCount);
+			
+			return (
+				currentPixels.red >= cost.red &&
+				currentPixels.green >= cost.green &&
+				currentPixels.blue >= cost.blue
+			);
+		},
+
+		// Unlock a color by spending RGB pixels
+		unlockColor: (colorId: keyof CompositeColorState): boolean => {
+			const currentPixels = get(pixels);
+			const currentColors = get({ subscribe });
+			const color = currentColors[colorId];
+			
+			if (!color || color.unlocked) return false;
+
+			const colorType = color.type;
+			const unlockedCount = Object.values(currentColors)
+				.filter(c => c.type === colorType && c.unlocked).length;
+
+			const cost = calculateUnlockCost(colorType, unlockedCount);
+			
+			// Check if we can afford the unlock
+			if (
+				currentPixels.red >= cost.red &&
+				currentPixels.green >= cost.green &&
+				currentPixels.blue >= cost.blue
+			) {
+				// Deduct RGB pixels
+				pixels.update((p) => ({
+					...p,
+					red: p.red - cost.red,
+					green: p.green - cost.green,
+					blue: p.blue - cost.blue,
+				}));
+
+				// Unlock the color
+				update((colors) => ({
+					...colors,
+					[colorId]: {
+						...colors[colorId],
+						unlocked: true,
+					},
+				}));
+
+				return true;
+			}
+			return false;
+		},
+
+		// Get count of unlocked colors by type
+		getUnlockedCount: (type: "mixed" | "pure"): number => {
+			const colors = get({ subscribe });
+			return Object.values(colors).filter((color) => color.type === type && color.unlocked).length;
+		},
+
+		// Get next color to unlock by order
+		getNextToUnlock: (type: "mixed" | "pure"): CompositeColor | null => {
+			const colors = get({ subscribe });
+			const order = type === "mixed" ? MIXED_COLOR_UNLOCK_ORDER : PURE_COLOR_UNLOCK_ORDER;
+			
+			for (const colorId of order) {
+				const color = colors[colorId as keyof CompositeColorState];
+				if (color && !color.unlocked) {
+					return color;
+				}
+			}
+			return null;
+		},
+
 		// Check if player can afford a specific color recipe
 		canAfford: (colorId: keyof CompositeColorState): boolean => {
 			const currentPixels = get(pixels);
 			const currentColors = get({ subscribe });
 			const color = currentColors[colorId];
 			
-			if (!color) return false;
+			if (!color || !color.unlocked) return false;
 
 			return (
 				currentPixels.red >= color.recipe.red &&
@@ -212,7 +324,7 @@ function createCompositeColorsStore() {
 			const currentColors = get({ subscribe });
 			const color = currentColors[colorId];
 			
-			if (!color) return false;
+			if (!color || !color.unlocked) return false;
 
 			// Check if we can afford the recipe
 			if (
@@ -242,58 +354,73 @@ function createCompositeColorsStore() {
 			return false;
 		},
 
-		// Get all mixed colors (for UI grouping)
+		// Get all mixed colors (for UI grouping) - includes locked colors for unlock UI
 		getMixedColors: (): CompositeColor[] => {
 			const colors = get({ subscribe });
 			return Object.values(colors).filter((color) => color.type === "mixed");
 		},
 
-		// Get all pure colors (for UI grouping)
+		// Get all pure colors (for UI grouping) - includes locked colors for unlock UI  
 		getPureColors: (): CompositeColor[] => {
 			const colors = get({ subscribe });
 			return Object.values(colors).filter((color) => color.type === "pure");
 		},
 
-		// Get total count of all composite colors
-		getTotalCount: (): number => {
+		// Get only unlocked colors for calculations
+		getUnlockedMixedColors: (): CompositeColor[] => {
 			const colors = get({ subscribe });
-			return Object.values(colors).reduce((total, color) => total + color.count, 0);
+			return Object.values(colors).filter((color) => color.type === "mixed" && color.unlocked);
 		},
 
-		// Get pure color count for a specific color
+		getUnlockedPureColors: (): CompositeColor[] => {
+			const colors = get({ subscribe });
+			return Object.values(colors).filter((color) => color.type === "pure" && color.unlocked);
+		},
+
+		// Get total count of all unlocked composite colors
+		getTotalCount: (): number => {
+			const colors = get({ subscribe });
+			return Object.values(colors)
+				.filter(color => color.unlocked)
+				.reduce((total, color) => total + color.count, 0);
+		},
+
+		// Get pure color count for a specific color (only if unlocked)
 		getPureColorCount: (color: "red" | "green" | "blue"): number => {
 			const colors = get({ subscribe });
 			switch (color) {
 				case "red":
-					return colors.crimson.count;
+					return colors.crimson.unlocked ? colors.crimson.count : 0;
 				case "green":
-					return colors.emerald.count;
+					return colors.emerald.unlocked ? colors.emerald.count : 0;
 				case "blue":
-					return colors.sapphire.count;
+					return colors.sapphire.unlocked ? colors.sapphire.count : 0;
 				default:
 					return 0;
 			}
 		},
 
-		// Check if player has all three pure colors
+		// Check if player has all three pure colors (unlocked and owned)
 		hasAllPureColors: (): boolean => {
 			const colors = get({ subscribe });
-			return colors.crimson.count > 0 && colors.emerald.count > 0 && colors.sapphire.count > 0;
+			return colors.crimson.unlocked && colors.crimson.count > 0 && 
+				   colors.emerald.unlocked && colors.emerald.count > 0 && 
+				   colors.sapphire.unlocked && colors.sapphire.count > 0;
 		},
 
-		// Complex scaling function for pure color RGB generator multipliers
+		// Complex scaling function for pure color RGB generator multipliers  
 		getPureColorMultiplier: (color: "red" | "green" | "blue"): number => {
 			const colors = get({ subscribe });
 			let pureCount = 0;
 			switch (color) {
 				case "red":
-					pureCount = colors.crimson.count;
+					pureCount = colors.crimson.unlocked ? colors.crimson.count : 0;
 					break;
 				case "green":
-					pureCount = colors.emerald.count;
+					pureCount = colors.emerald.unlocked ? colors.emerald.count : 0;
 					break;
 				case "blue":
-					pureCount = colors.sapphire.count;
+					pureCount = colors.sapphire.unlocked ? colors.sapphire.count : 0;
 					break;
 			}
 			
@@ -311,8 +438,10 @@ function createCompositeColorsStore() {
 			if (pureCount > 100) effectiveCount = 100 + Math.pow(pureCount - 100, 0.8);
 			if (pureCount > 500) effectiveCount = 400 + Math.pow(pureCount - 500, 0.6);
 
-			// Layer 4: Synergy bonus if you have all three pure colors
-			const hasAllPure = colors.crimson.count > 0 && colors.emerald.count > 0 && colors.sapphire.count > 0;
+			// Layer 4: Synergy bonus if you have all three pure colors (unlocked and owned)
+			const hasAllPure = colors.crimson.unlocked && colors.crimson.count > 0 && 
+							   colors.emerald.unlocked && colors.emerald.count > 0 && 
+							   colors.sapphire.unlocked && colors.sapphire.count > 0;
 			const synergyBonus = hasAllPure ? Math.log10(pureCount + 1) * 0.2 : 0;
 
 			// Final calculation with soft cap smoothing
@@ -330,10 +459,10 @@ function createCompositeColorsStore() {
 		getRandomGeneratorMultiplier: (): number => {
 			const colors = get({ subscribe });
 			
-			// Get pure color counts directly
-			const redCount = colors.crimson.count;
-			const greenCount = colors.emerald.count;
-			const blueCount = colors.sapphire.count;
+			// Get pure color counts directly (only if unlocked)
+			const redCount = colors.crimson.unlocked ? colors.crimson.count : 0;
+			const greenCount = colors.emerald.unlocked ? colors.emerald.count : 0;  
+			const blueCount = colors.sapphire.unlocked ? colors.sapphire.count : 0;
 			
 			if (redCount === 0 && greenCount === 0 && blueCount === 0) return 1;
 			

@@ -6,6 +6,7 @@ export * from "./mechanics.config";
 export * from "./generators.config";
 export * from "./converters.config";
 export * from "./lumen.config";
+export * from "./compositeColors.config";
 
 // Additional game-wide constants that don't fit in other categories
 export const GAME_CONSTANTS = {

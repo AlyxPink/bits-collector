@@ -51,3 +51,18 @@ export interface MilestoneConfig {
 	thresholds: number[];
 	bonusPerMilestone: number;
 }
+
+export interface CompositeColorUnlockConfig {
+	mixed: {
+		baseCost: number;
+		costMultiplier: number;
+		softCapThreshold: number;
+		softCapPower: number;
+	};
+	pure: {
+		baseCost: number;
+		costMultiplier: number;
+		softCapThreshold: number;
+		softCapPower: number;
+	};
+}

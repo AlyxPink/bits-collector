@@ -3,6 +3,17 @@ import { pixels } from "./pixels";
 import { pixelStream } from "./pixelStream";
 import { lumen } from "./lumen";
 import { compositeColors } from "./compositeColors";
+import { 
+	GENERATOR_CONFIG, 
+	POWERUP_CONFIG, 
+	BREAKTHROUGH_CONFIG, 
+	TAB_UNLOCK_CONFIG,
+	PURE_COLOR_MILESTONES,
+	PRODUCTION_SCALING,
+	PURE_COLOR_BOOST,
+	TICK_INTERVAL,
+	GAME_CONSTANTS
+} from "$lib/config/gameConfig";
 
 export interface GeneratorUpgrade {
 	id: string;
@@ -66,31 +77,31 @@ export const TAB_UNLOCK_REQUIREMENTS: Record<string, TabUnlock> = {
 		id: "generators",
 		name: "Generators",
 		icon: "🤖",
-		unlockCost: { white: 0, red: 0, green: 0, blue: 0 } // Always unlocked
+		unlockCost: TAB_UNLOCK_CONFIG.generators
 	},
 	autoConverters: {
 		id: "autoConverters",
 		name: "Auto Converters",
 		icon: "⚙️",
-		unlockCost: { white: 10, red: 25, green: 25, blue: 25 }
+		unlockCost: TAB_UNLOCK_CONFIG.autoConverters
 	},
 	powerups: {
 		id: "powerups",
 		name: "Powerups",
 		icon: "⚡",
-		unlockCost: { white: 30, red: 100, green: 100, blue: 100 }
+		unlockCost: TAB_UNLOCK_CONFIG.powerups
 	},
 	breakthroughs: {
 		id: "breakthroughs",
 		name: "Breakthroughs",
 		icon: "🚀",
-		unlockCost: { white: 150, red: 500, green: 500, blue: 500 }
+		unlockCost: TAB_UNLOCK_CONFIG.breakthroughs
 	},
 	luminosity: {
 		id: "luminosity",
 		name: "Luminosity",
 		icon: "💡",
-		unlockCost: { white: 500, red: 1000, green: 1000, blue: 1000 }
+		unlockCost: TAB_UNLOCK_CONFIG.luminosity
 	},
 };
 
@@ -100,9 +111,7 @@ const DEFAULT_GENERATORS: Record<string, GeneratorUpgrade> = {
 		name: "Red Bits Generator",
 		description: "Generates red bits over time",
 		color: "red",
-		baseRate: 0.5,
-		baseCost: 10,
-		costMultiplier: 1.5,
+		...GENERATOR_CONFIG.red,
 		level: 0,
 		owned: false,
 	},
@@ -111,9 +120,7 @@ const DEFAULT_GENERATORS: Record<string, GeneratorUpgrade> = {
 		name: "Green Bits Generator",
 		description: "Generates green bits over time",
 		color: "green",
-		baseRate: 0.5,
-		baseCost: 10,
-		costMultiplier: 1.5,
+		...GENERATOR_CONFIG.green,
 		level: 0,
 		owned: false,
 	},
@@ -122,9 +129,7 @@ const DEFAULT_GENERATORS: Record<string, GeneratorUpgrade> = {
 		name: "Blue Bits Generator",
 		description: "Generates blue bits over time",
 		color: "blue",
-		baseRate: 0.5,
-		baseCost: 10,
-		costMultiplier: 1.5,
+		...GENERATOR_CONFIG.blue,
 		level: 0,
 		owned: false,
 	},
@@ -133,9 +138,7 @@ const DEFAULT_GENERATORS: Record<string, GeneratorUpgrade> = {
 		name: "Random Bits Generator",
 		description: "Generates random RGB bits over time",
 		color: "random",
-		baseRate: 1.0,
-		baseCost: 25,
-		costMultiplier: 1.8,
+		...GENERATOR_CONFIG.random,
 		level: 0,
 		owned: false,
 	},
@@ -146,31 +149,22 @@ const DEFAULT_POWERUPS: Record<string, PowerupUpgrade> = {
 		id: "speedBoost",
 		name: "Speed Boost",
 		description: "2x auto-buy rate",
-		multiplier: 2,
-		baseCost: 50,
-		costMultiplier: 3,
+		...POWERUP_CONFIG.speedBoost,
 		level: 0,
-		maxLevel: 5,
 	},
 	megaSpeed: {
 		id: "megaSpeed",
 		name: "Mega Speed",
 		description: "5x auto-buy rate",
-		multiplier: 5,
-		baseCost: 200,
-		costMultiplier: 4,
+		...POWERUP_CONFIG.megaSpeed,
 		level: 0,
-		maxLevel: 3,
 	},
 	ultraSpeed: {
 		id: "ultraSpeed",
 		name: "Ultra Speed",
 		description: "10x auto-buy rate",
-		multiplier: 10,
-		baseCost: 1000,
-		costMultiplier: 5,
+		...POWERUP_CONFIG.ultraSpeed,
 		level: 0,
-		maxLevel: 2,
 	},
 };
 
@@ -180,27 +174,21 @@ const DEFAULT_BREAKTHROUGHS: Record<string, BreakthroughUpgrade> = {
 		id: "efficiency1",
 		name: "Production Smoothing I",
 		description: "Improves production curve efficiency by 15%",
-		type: "efficiency",
-		effect: 1.15,
-		baseCost: 100,
+		...BREAKTHROUGH_CONFIG.efficiency1,
 		purchased: false,
 	},
 	efficiency2: {
 		id: "efficiency2",
 		name: "Production Smoothing II",
 		description: "Improves production curve efficiency by 25%",
-		type: "efficiency",
-		effect: 1.25,
-		baseCost: 2500,
+		...BREAKTHROUGH_CONFIG.efficiency2,
 		purchased: false,
 	},
 	efficiency3: {
 		id: "efficiency3",
 		name: "Production Smoothing III",
 		description: "Improves production curve efficiency by 40%",
-		type: "efficiency",
-		effect: 1.4,
-		baseCost: 50000,
+		...BREAKTHROUGH_CONFIG.efficiency3,
 		purchased: false,
 	},
 	
@@ -209,36 +197,28 @@ const DEFAULT_BREAKTHROUGHS: Record<string, BreakthroughUpgrade> = {
 		id: "conversionCatalyst",
 		name: "Conversion Catalyst",
 		description: "Reduces RGB cost multiplier by 25%",
-		type: "efficiency",
-		effect: 0.25,
-		baseCost: 150,
+		...BREAKTHROUGH_CONFIG.conversionCatalyst,
 		purchased: false,
 	},
 	efficiencyStabilizer: {
 		id: "efficiencyStabilizer",
 		name: "Efficiency Stabilizer",
 		description: "Reduces conversion efficiency decay by 50%",
-		type: "efficiency",
-		effect: 0.5,
-		baseCost: 300,
+		...BREAKTHROUGH_CONFIG.efficiencyStabilizer,
 		purchased: false,
 	},
 	bulkConverter: {
 		id: "bulkConverter",
 		name: "Bulk Converter",
 		description: "Convert up to 5 sets of RGB at once",
-		type: "multiplier",
-		effect: 5,
-		baseCost: 500,
+		...BREAKTHROUGH_CONFIG.bulkConverter,
 		purchased: false,
 	},
 	whiteAmplifier: {
 		id: "whiteAmplifier",
 		name: "White Pixel Amplifier",
 		description: "25% chance to get bonus white pixel",
-		type: "multiplier",
-		effect: 0.25,
-		baseCost: 750,
+		...BREAKTHROUGH_CONFIG.whiteAmplifier,
 		purchased: false,
 	},
 };
@@ -247,22 +227,22 @@ const DEFAULT_BREAKTHROUGHS: Record<string, BreakthroughUpgrade> = {
 function calculateNextPureColorMultiplier(color: "red" | "green" | "blue", count: number): number {
 	if (count === 0) return 1;
 
-	const baseBoost = Math.pow(count, 0.5) * 0.1;
-	const milestones = [10, 25, 50, 100, 250, 500, 1000];
-	const milestoneBonus = milestones.filter((m) => count >= m).length * 0.15;
+	const baseBoost = Math.pow(count, PURE_COLOR_BOOST.baseBoostPower) * PURE_COLOR_BOOST.baseBoostMultiplier;
+	const milestones = PURE_COLOR_MILESTONES.thresholds;
+	const milestoneBonus = milestones.filter((m) => count >= m).length * PURE_COLOR_MILESTONES.bonusPerMilestone;
 
 	let effectiveCount = count;
-	if (count > 100) effectiveCount = 100 + Math.pow(count - 100, 0.8);
-	if (count > 500) effectiveCount = 400 + Math.pow(count - 500, 0.6);
+	if (count > 100) effectiveCount = 100 + Math.pow(count - 100, PURE_COLOR_BOOST.effectiveCountPowers.above100);
+	if (count > 500) effectiveCount = 400 + Math.pow(count - 500, PURE_COLOR_BOOST.effectiveCountPowers.above500);
 
 	const hasAllPure = compositeColors.hasAllPureColors();
-	const synergyBonus = hasAllPure ? Math.log10(count + 1) * 0.2 : 0;
+	const synergyBonus = hasAllPure ? Math.log10(count + 1) * PURE_COLOR_BOOST.synergyMultiplier : 0;
 
 	const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.01) + synergyBonus;
 
-	if (rawMultiplier > 20) return 18 + Math.pow(rawMultiplier - 20, 0.3);
-	if (rawMultiplier > 10) return 9 + Math.pow(rawMultiplier - 10, 0.5);
-	if (rawMultiplier > 5) return 5 + Math.pow(rawMultiplier - 5, 0.7);
+	if (rawMultiplier > PURE_COLOR_BOOST.capThresholds.hard) return 18 + Math.pow(rawMultiplier - PURE_COLOR_BOOST.capThresholds.hard, PURE_COLOR_BOOST.capPowers.hard);
+	if (rawMultiplier > PURE_COLOR_BOOST.capThresholds.medium) return 9 + Math.pow(rawMultiplier - PURE_COLOR_BOOST.capThresholds.medium, PURE_COLOR_BOOST.capPowers.medium);
+	if (rawMultiplier > PURE_COLOR_BOOST.capThresholds.soft) return 5 + Math.pow(rawMultiplier - PURE_COLOR_BOOST.capThresholds.soft, PURE_COLOR_BOOST.capPowers.soft);
 
 	return rawMultiplier;
 }
@@ -276,17 +256,17 @@ function applySmoothScaling(
 
 	// Apply smooth logarithmic-like scaling
 	// This creates gradual slowdown without hard walls
-	scaled = Math.pow(production, 0.85) * 2;
+	scaled = Math.pow(production, PRODUCTION_SCALING.basePower) * 2;
 
 	// Gradual soft caps that "bend" rather than "break"
 	if (scaled > 10) {
-		scaled = 10 + Math.pow(scaled - 10, 0.75) * 1.5;
+		scaled = 10 + Math.pow(scaled - 10, PRODUCTION_SCALING.softCapPowers.tier1) * PRODUCTION_SCALING.multipliers.tier1;
 	}
 	if (scaled > 100) {
-		scaled = 100 + Math.pow(scaled - 100, 0.6) * 1.2;
+		scaled = 100 + Math.pow(scaled - 100, PRODUCTION_SCALING.softCapPowers.tier2) * PRODUCTION_SCALING.multipliers.tier2;
 	}
 	if (scaled > 1000) {
-		scaled = 1000 + Math.pow(scaled - 1000, 0.45);
+		scaled = 1000 + Math.pow(scaled - 1000, PRODUCTION_SCALING.softCapPowers.tier3);
 	}
 
 	// Apply breakthrough multipliers for smooth efficiency boosts
@@ -338,12 +318,7 @@ function getTotalTheoreticalProduction(
 }
 
 function loadUpgrades(): UpgradeState {
-	const defaultAccumulator = {
-		redGenerator: 0,
-		greenGenerator: 0,
-		blueGenerator: 0,
-		randomGenerator: 0,
-	};
+	const defaultAccumulator = GAME_CONSTANTS.defaultAccumulator;
 
 	if (typeof window === "undefined") {
 		return {
@@ -352,7 +327,7 @@ function loadUpgrades(): UpgradeState {
 			breakthroughs: { ...DEFAULT_BREAKTHROUGHS },
 			lastAutoTick: Date.now(),
 			bitAccumulator: { ...defaultAccumulator },
-			unlockedTabs: ["generators"],
+			unlockedTabs: GAME_CONSTANTS.initialTabs,
 		};
 	}
 
@@ -379,7 +354,7 @@ function loadUpgrades(): UpgradeState {
 				breakthroughs: { ...DEFAULT_BREAKTHROUGHS },
 				lastAutoTick: Date.now(),
 				bitAccumulator: { ...defaultAccumulator },
-				unlockedTabs: ["generators"],
+				unlockedTabs: GAME_CONSTANTS.initialTabs,
 			};
 		}
 	}
@@ -390,7 +365,7 @@ function loadUpgrades(): UpgradeState {
 		breakthroughs: { ...DEFAULT_BREAKTHROUGHS },
 		lastAutoTick: Date.now(),
 		bitAccumulator: { ...defaultAccumulator },
-		unlockedTabs: ["generators"],
+		unlockedTabs: GAME_CONSTANTS.initialTabs,
 	};
 }
 
@@ -867,9 +842,9 @@ export const isTabUnlocked = derived(
 	($status) => (tabId: string) => $status[tabId]?.unlocked ?? false,
 );
 
-// Generator tick system - runs every 100ms
+// Generator tick system
 if (typeof window !== "undefined") {
 	setInterval(() => {
 		upgrades.processAutoTick();
-	}, 100);
+	}, TICK_INTERVAL);
 }

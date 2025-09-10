@@ -1,5 +1,6 @@
 import { writable, derived, get } from "svelte/store";
 import { pixels } from "./pixels";
+import { LUMEN_UPGRADE_CONFIG, LUMEN_GENERATION } from "$lib/config/gameConfig";
 
 export interface LumenState {
 	total: number;
@@ -27,7 +28,7 @@ const DEFAULT_LUMEN_UPGRADES: Record<string, LumenUpgrade> = {
 		description: "Multiply base lumen generation by 2x",
 		type: "multiplier",
 		effect: 2,
-		baseCost: 100,
+		baseCost: LUMEN_UPGRADE_CONFIG.collectorsI.baseCost,
 		costMultiplier: 5,
 		level: 0,
 		maxLevel: 10,
@@ -38,7 +39,7 @@ const DEFAULT_LUMEN_UPGRADES: Record<string, LumenUpgrade> = {
 		description: "Improve lumen generation curve by 20%",
 		type: "efficiency",
 		effect: 1.2,
-		baseCost: 500,
+		baseCost: LUMEN_UPGRADE_CONFIG.collectorsII.baseCost,
 		costMultiplier: 10,
 		level: 0,
 		maxLevel: 5,
@@ -49,7 +50,7 @@ const DEFAULT_LUMEN_UPGRADES: Record<string, LumenUpgrade> = {
 		description: "RGB generators get +50% rate per 100 total lumen",
 		type: "synergy",
 		effect: 0.5,
-		baseCost: 1000,
+		baseCost: LUMEN_UPGRADE_CONFIG.collectorsIII.baseCost,
 		costMultiplier: 20,
 		level: 0,
 		maxLevel: 3,
@@ -60,7 +61,7 @@ const DEFAULT_LUMEN_UPGRADES: Record<string, LumenUpgrade> = {
 		description: "Each 1000 lumen makes conversions 10% cheaper",
 		type: "synergy",
 		effect: 0.1,
-		baseCost: 2500,
+		baseCost: LUMEN_UPGRADE_CONFIG.convertersI.baseCost,
 		costMultiplier: 25,
 		level: 0,
 		maxLevel: 5,
@@ -71,7 +72,7 @@ const DEFAULT_LUMEN_UPGRADES: Record<string, LumenUpgrade> = {
 		description: "Lumen/sec above 100 boosts RGB generation by 25%",
 		type: "synergy",
 		effect: 0.25,
-		baseCost: 5000,
+		baseCost: LUMEN_UPGRADE_CONFIG.convertersII.baseCost,
 		costMultiplier: 50,
 		level: 0,
 		maxLevel: 2,

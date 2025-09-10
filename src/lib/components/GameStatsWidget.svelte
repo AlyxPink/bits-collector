@@ -66,8 +66,9 @@ $effect(() => {
 
 	<!-- Conversion Stats -->
 	<div class="border-b border-cyan-500/20 pb-2">
-		<div class="text-cyan-400 font-bold mb-1.5 flex items-center">
+		<div class="text-cyan-400 font-bold mb-1.5 flex items-center gap-1">
 			⚡ Conversion
+			<span class="text-xs text-gray-400 cursor-help" title="Shows how many RGB pixels you need to convert into 1 white pixel. Efficiency decreases as you make more conversions to prevent runaway growth.">ℹ️</span>
 		</div>
 		<div class="space-y-1">
 			<div class="flex justify-between">
@@ -93,8 +94,9 @@ $effect(() => {
 	
 	<!-- Production Stats -->
 	<div class="border-b border-yellow-500/20 pb-2">
-		<div class="text-yellow-400 font-bold mb-1.5 flex items-center">
+		<div class="text-yellow-400 font-bold mb-1.5 flex items-center gap-1">
 			🤖 Production
+			<span class="text-xs text-gray-400 cursor-help" title="Shows how fast your generators produce bits per second. Theoretical is the raw rate, Effective is after soft caps reduce efficiency at high speeds.">ℹ️</span>
 		</div>
 		<div class="space-y-1">
 			<div class="flex justify-between">

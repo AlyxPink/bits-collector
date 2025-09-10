@@ -49,11 +49,11 @@ The game uses Svelte stores for reactive state management with localStorage pers
   - Provides `canConvert` derived store for UI reactivity
 
 - **`upgrades.ts`**: Generators, powerups, and breakthrough systems
-  - Generators: Automated pixel collectors with levels and rates
-  - Powerups: Multiplicative speed boosts
-  - Breakthroughs: Upgrades that overcome production soft caps
+  - Generators: Automated pixel collectors with levels and rates (costs from config)
+  - Powerups: Multiplicative speed boosts (multipliers from config)
+  - Breakthroughs: Upgrades that overcome production soft caps (effects from config)
   - Accumulator system for fractional bit collection
-  - Auto-tick runs every 100ms
+  - Auto-tick runs using configurable interval
 
 - **`game.ts`**: Game statistics tracking (clicks, conversions, playtime)
 
@@ -62,6 +62,44 @@ The game uses Svelte stores for reactive state management with localStorage pers
 - **`saveManager.ts`**: Centralized save/load functionality
 
 - **`inputController.ts`**: Keyboard and gamepad input handling
+
+### Configuration Architecture
+
+The game uses a centralized configuration system to eliminate hardcoded values and ensure maintainability:
+
+- **`src/lib/config/`**: Centralized game configuration module
+  - **`gameConfig.ts`**: Master export file that re-exports all configurations
+  - **`types.ts`**: TypeScript interfaces for all configuration structures
+  - **`generators.config.ts`**: Generator costs, rates, and multipliers
+  - **`converters.config.ts`**: Auto-converter settings and parameters
+  - **`lumen.config.ts`**: Lumen system upgrade configurations
+  - **`mechanics.config.ts`**: Game mechanics (soft caps, thresholds, milestones)
+
+**Architecture Pattern**: `Configuration → Stores → Components`
+- Stores import configuration values instead of hardcoding them
+- Components continue using store methods (API unchanged)
+- Single source of truth for all game balance parameters
+- Type-safe configuration with compile-time validation
+
+**Configuration Module Structure**:
+```
+src/lib/config/
+├── types.ts              # TypeScript interfaces for all config structures
+├── gameConfig.ts         # Master export file (import from here)
+├── generators.config.ts  # Generator costs: baseCost, costMultiplier, baseRate
+├── converters.config.ts  # Auto-converter: costs, rates, maxLevels, unlock requirements
+├── lumen.config.ts       # Lumen upgrades: costs, effects, descriptions
+└── mechanics.config.ts   # Soft caps, thresholds, milestones, formulas
+```
+
+**Usage Pattern**:
+```typescript
+// In stores - import from master config
+import { GENERATOR_CONFIG, POWERUP_CONFIG } from "$lib/config/gameConfig";
+
+// Use config values instead of hardcoding
+const baseCost = GENERATOR_CONFIG.red.baseCost; // Instead of: baseCost: 10
+```
 
 ### Component Organization
 
@@ -97,9 +135,12 @@ src/lib/components/
 - The game handles tab/window inactivity by calculating delta time
 - Bit accumulator prevents loss of fractional bits between ticks
 - Random generator distributes bits evenly across RGB colors
-- Powerup multipliers stack multiplicatively (2x * 5x = 10x)
-- Soft cap system uses fractional powers to reduce production efficiency at high rates
-- Breakthrough upgrades extend soft cap thresholds by multiplicative factors
+- Powerup multipliers stack multiplicatively (from config: 2x * 5x = 10x)
+- Soft cap system uses fractional powers (from mechanics config) to reduce production efficiency
+- Breakthrough upgrades extend soft cap thresholds by multiplicative factors (from config)
+- Configuration is resolved at build time with zero runtime performance cost
+- Config changes automatically propagate through stores to UI components
+- Tree-shakeable imports ensure optimal bundle size for unused configurations
 
 ### Deployment Configuration
 
@@ -121,3 +162,64 @@ Run `bun run check` to validate:
 - Template syntax
 
 No unit tests are currently configured, but the type checking provides baseline validation.
+
+## Code Quality Standards
+
+This project maintains high code quality standards through systematic architecture and best practices:
+
+### Configuration Management
+- **Single Source of Truth**: All game constants defined in `src/lib/config/`
+- **No Hardcoded Values**: Game balance parameters must not be hardcoded in stores or components
+- **Type Safety**: All configuration objects use TypeScript interfaces
+- **Naming Conventions**: Configuration constants use `SCREAMING_SNAKE_CASE`
+
+### Architecture Principles
+- **Separation of Concerns**: Clean layers: Config → Store → Component
+- **DRY Principle**: No duplicate values across the codebase
+- **Encapsulation**: Components never directly access configuration
+- **API Stability**: Store method signatures remain unchanged when config changes
+
+### Code Organization
+- **Feature-Based Config**: Related configurations grouped in dedicated files
+- **Master Export Pattern**: Single import point (`gameConfig.ts`) with re-exports
+- **Logical File Structure**: Clear naming and single responsibility per file
+- **SvelteKit Conventions**: Proper use of `$lib` aliases and module organization
+
+### Performance Standards
+- **Zero Runtime Cost**: Configuration resolved at build time
+- **Tree-Shaking Friendly**: Named exports enable dead code elimination
+- **Build Optimization**: Static imports for optimal Vite bundling
+- **Memory Efficiency**: Singleton configuration objects
+
+### Quality Gates
+- All code must pass `bun run check` before completion
+- TypeScript strict mode enforced
+- No magic numbers in business logic
+- Full type coverage for all configuration objects
+
+## Best Practices
+
+### Configuration Management
+- **Always use config**: Never hardcode game balance values in stores or components
+- **Import from master**: Import configurations from `$lib/config/gameConfig` only
+- **Type interfaces**: Create TypeScript interfaces for all configuration objects
+- **Group logically**: Related configurations belong in the same config file
+- **Document parameters**: Use JSDoc comments to explain complex configuration values
+
+### Code Organization
+- **Components → Stores → Config**: Maintain clean architectural layers
+- **No direct config access**: Components must never import configuration directly
+- **Preserve store APIs**: Store method signatures should remain stable when config changes
+- **Feature-based files**: Organize config files by game system or feature area
+
+### Development Workflow
+1. **Config First**: Add new game parameters to configuration before implementing features
+2. **Type Safety**: Define interfaces in `types.ts` before creating config objects
+3. **Validation**: Run `bun run check` after any configuration changes
+4. **Documentation**: Update CLAUDE.md when adding new configuration systems
+
+### Balance Changes
+- **Single Location**: All balance tweaks happen in config files only
+- **Test Changes**: Use `bun run dev` to verify balance changes work correctly
+- **Version Control**: Config changes should be atomic commits for easy rollback
+- **Documentation**: Document major balance changes in commit messages

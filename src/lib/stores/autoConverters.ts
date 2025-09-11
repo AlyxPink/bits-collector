@@ -291,6 +291,7 @@ function createAutoConvertersStore() {
 		tick: (deltaTimeSeconds: number): void => {
 			const converters = get({ subscribe });
 			const currentPixels = get(pixels);
+			const isFastCatchup = deltaTimeSeconds > 300; // 5 minutes threshold
 
 			Object.entries(converters).forEach(([converterId, converter]) => {
 				if (!converter.enabled || converter.level === 0) return;
@@ -340,23 +341,38 @@ function createAutoConvertersStore() {
 						maxConversions = Math.min(conversionsToProcess, Math.floor(currentPixels.red / 3));
 						if (maxConversions > 0) {
 							pixels.update((p) => ({ ...p, red: p.red - (3 * maxConversions) }));
-							compositeColors.mixColor("crimson" as any); // Multiple conversions need loop
+							if (isFastCatchup) {
+								// Fast catchup: add composite color count directly
+								compositeColors.addColorBulk("crimson", maxConversions);
+							} else {
+								// Normal mode: individual calls for proper logic
+								for (let i = 0; i < maxConversions; i++) {
+									compositeColors.mixColor("crimson" as any);
+								}
+							}
 						}
 					} else if (converter.targetColor === "emerald") {
 						maxConversions = Math.min(conversionsToProcess, Math.floor(currentPixels.green / 3));
 						if (maxConversions > 0) {
 							pixels.update((p) => ({ ...p, green: p.green - (3 * maxConversions) }));
-							// Add emerald directly
-							for (let i = 0; i < maxConversions; i++) {
-								compositeColors.mixColor("emerald" as any);
+							if (isFastCatchup) {
+								compositeColors.addColorBulk("emerald", maxConversions);
+							} else {
+								for (let i = 0; i < maxConversions; i++) {
+									compositeColors.mixColor("emerald" as any);
+								}
 							}
 						}
 					} else if (converter.targetColor === "sapphire") {
 						maxConversions = Math.min(conversionsToProcess, Math.floor(currentPixels.blue / 3));
 						if (maxConversions > 0) {
 							pixels.update((p) => ({ ...p, blue: p.blue - (3 * maxConversions) }));
-							for (let i = 0; i < maxConversions; i++) {
-								compositeColors.mixColor("sapphire" as any);
+							if (isFastCatchup) {
+								compositeColors.addColorBulk("sapphire", maxConversions);
+							} else {
+								for (let i = 0; i < maxConversions; i++) {
+									compositeColors.mixColor("sapphire" as any);
+								}
 							}
 						}
 					}
@@ -380,8 +396,20 @@ function createAutoConvertersStore() {
 						);
 
 						if (maxConversions > 0) {
-							for (let i = 0; i < maxConversions; i++) {
-								compositeColors.mixColor(converter.targetColor as any);
+							if (isFastCatchup) {
+								// Fast catchup: bulk update RGB pixels and add composite colors directly
+								pixels.update((p) => ({
+									...p,
+									red: p.red - (recipe.red * maxConversions),
+									green: p.green - (recipe.green * maxConversions),
+									blue: p.blue - (recipe.blue * maxConversions),
+								}));
+								compositeColors.addColorBulk(converter.targetColor! as any, maxConversions);
+							} else {
+								// Normal mode: individual calls for proper logic
+								for (let i = 0; i < maxConversions; i++) {
+									compositeColors.mixColor(converter.targetColor as any);
+								}
 							}
 							conversionAccumulator[converterId] -= maxConversions;
 						}
@@ -434,9 +462,11 @@ export const autoConvertersUnlocked = derived(
 	($pixels) => $pixels.lifetimeWhite >= 10
 );
 
-// Auto converter tick system - runs every 100ms like generators
+// Register with the unified game loop
 if (typeof window !== "undefined") {
-	setInterval(() => {
-		autoConverters.tick(0.1); // 100ms = 0.1 seconds
-	}, 100);
+	import("./gameLoop").then(({ gameLoop }) => {
+		gameLoop.register({
+			tick: (deltaTime: number) => autoConverters.tick(deltaTime)
+		});
+	});
 }

@@ -519,6 +519,17 @@ function createCompositeColorsStore() {
 			return averageMultiplier * balanceBonus * chaosVariance;
 		},
 
+		// Bulk add composite colors (for fast catchup)
+		addColorBulk: (colorId: keyof CompositeColorState, amount: number) => {
+			update((colors) => ({
+				...colors,
+				[colorId]: {
+					...colors[colorId],
+					count: colors[colorId].count + amount,
+				},
+			}));
+		},
+
 		// Reset all composite colors
 		reset: () => {
 			set({ ...DEFAULT_COMPOSITE_COLORS });

@@ -240,10 +240,11 @@ function createLumenStore() {
 		},
 
 		// Process lumen generation tick
-		processLumenTick: () => {
+		processLumenTick: (deltaTimeSeconds?: number) => {
 			const now = Date.now();
 			update((state) => {
-				const deltaTime = (now - state.lastTick) / 1000; // Convert to seconds
+				// Use provided deltaTime or calculate from lastTick for backward compatibility
+				const deltaTime = deltaTimeSeconds ?? (now - state.lastTick) / 1000;
 				const pixelCount = get(pixels);
 
 				const lumenPerSec = calculateLumenPerSecond(
@@ -329,9 +330,11 @@ export const lumenEfficiency = derived(
 	}
 );
 
-// Set up lumen generation tick - runs every 100ms like generators
+// Register with the unified game loop
 if (typeof window !== "undefined") {
-	setInterval(() => {
-		lumen.processLumenTick();
-	}, 100);
+	import("./gameLoop").then(({ gameLoop }) => {
+		gameLoop.register({
+			tick: (deltaTime: number) => lumen.processLumenTick(deltaTime)
+		});
+	});
 }

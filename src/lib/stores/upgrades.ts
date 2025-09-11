@@ -691,10 +691,12 @@ function createUpgradesStore() {
 			return theoreticalRate * efficiencyRatio;
 		},
 
-		processAutoTick: () => {
+		processAutoTick: (deltaTimeSeconds?: number) => {
 			const now = Date.now();
 			update((state) => {
-				const deltaTime = (now - state.lastAutoTick) / 1000; // Convert to seconds
+				// Use provided deltaTime or calculate from lastAutoTick for backward compatibility
+				const deltaTime = deltaTimeSeconds ?? (now - state.lastAutoTick) / 1000;
+				const isFastCatchup = deltaTime > 300; // 5 minutes threshold
 
 				// Calculate soft cap adjusted rates
 				const totalTheoretical = getTotalTheoreticalProduction(
@@ -708,74 +710,135 @@ function createUpgradesStore() {
 				const efficiencyRatio =
 					totalTheoretical > 0 ? totalEffective / totalTheoretical : 1;
 
-				// Process each generator
-				Object.values(state.generators).forEach((generator) => {
-					if (generator.owned && generator.level > 0) {
-						const rate = generator.baseRate * generator.level;
-						const multiplier = Object.values(state.powerups).reduce(
-							(mult, powerup) => {
-								if (powerup.level > 0) {
-									return mult * Math.pow(powerup.multiplier, powerup.level);
-								}
-								return mult;
-							},
-							1,
-						);
+				// Fast catchup mode: bulk calculation for offline progress
+				if (isFastCatchup) {
+					const bulkPixels = { red: 0, green: 0, blue: 0 };
 
-						// Apply lumen synergies
-						const lumenBoost = lumen.getRGBGeneratorMultiplier();
-						const overflowBoost = lumen.getRGBBoostFromOverflow();
-						const totalLumenMultiplier = lumenBoost * overflowBoost;
+					Object.values(state.generators).forEach((generator) => {
+						if (generator.owned && generator.level > 0) {
+							const rate = generator.baseRate * generator.level;
+							const multiplier = Object.values(state.powerups).reduce(
+								(mult, powerup) => {
+									if (powerup.level > 0) {
+										return mult * Math.pow(powerup.multiplier, powerup.level);
+									}
+									return mult;
+								},
+								1,
+							);
 
-						// Apply pure color multipliers for matching colors
-						let pureColorMultiplier = 1;
-						if (generator.color === "random") {
-							pureColorMultiplier = pureColors.getRandomGeneratorMultiplier();
-						} else if (generator.color === "red" || generator.color === "green" || generator.color === "blue") {
-							pureColorMultiplier = pureColors.getPureColorMultiplier(generator.color);
-						}
+							// Apply lumen synergies
+							const lumenBoost = lumen.getRGBGeneratorMultiplier();
+							const overflowBoost = lumen.getRGBBoostFromOverflow();
+							const totalLumenMultiplier = lumenBoost * overflowBoost;
 
-						// Apply soft cap efficiency, lumen multipliers, and pure color multipliers to this generator's rate
-						const effectiveRate = rate * multiplier * efficiencyRatio * totalLumenMultiplier * pureColorMultiplier;
-						// Add fractional bits to accumulator
-						state.bitAccumulator[generator.id] += effectiveRate * deltaTime;
-
-						// Convert whole bits from accumulator
-						const bitsToAdd = Math.floor(state.bitAccumulator[generator.id]);
-						if (bitsToAdd > 0) {
-							state.bitAccumulator[generator.id] -= bitsToAdd; // Remove whole bits, keep fractional
-
-							// Track pixels for stream visualization
-							const streamPixels: ("red" | "green" | "blue")[] = [];
-
+							// Apply pure color multipliers for matching colors
+							let pureColorMultiplier = 1;
 							if (generator.color === "random") {
-								// Random color selection
-								const colors: ("red" | "green" | "blue")[] = [
-									"red",
-									"green",
-									"blue",
-								];
-								for (let i = 0; i < bitsToAdd; i++) {
-									const randomColor = colors[Math.floor(Math.random() * 3)];
-									pixels.addPixel(randomColor);
-									streamPixels.push(randomColor);
-								}
-							} else {
-								// Specific color
-								const color = generator.color as "red" | "green" | "blue";
-								for (let i = 0; i < bitsToAdd; i++) {
-									pixels.addPixel(color);
-									streamPixels.push(color);
-								}
+								pureColorMultiplier = pureColors.getRandomGeneratorMultiplier();
+							} else if (generator.color === "red" || generator.color === "green" || generator.color === "blue") {
+								pureColorMultiplier = pureColors.getPureColorMultiplier(generator.color);
 							}
 
-							// Add pixels to stream visualization
-							if (streamPixels.length > 0) {
-								pixelStream.addPixels(streamPixels);
+							const effectiveRate = rate * multiplier * efficiencyRatio * totalLumenMultiplier * pureColorMultiplier;
+							state.bitAccumulator[generator.id] += effectiveRate * deltaTime;
+
+							const bitsToAdd = Math.floor(state.bitAccumulator[generator.id]);
+							if (bitsToAdd > 0) {
+								state.bitAccumulator[generator.id] -= bitsToAdd;
+
+								// Bulk add pixels without individual loops or stream updates
+								if (generator.color === "random") {
+									// Distribute random bits evenly across colors (same as original logic)
+									const redBits = Math.floor(bitsToAdd / 3) + (Math.random() < (bitsToAdd % 3) / 3 ? 1 : 0);
+									const greenBits = Math.floor(bitsToAdd / 3) + (Math.random() < (bitsToAdd % 3) / 3 ? 1 : 0);
+									const blueBits = bitsToAdd - redBits - greenBits;
+									
+									bulkPixels.red += redBits;
+									bulkPixels.green += greenBits;
+									bulkPixels.blue += blueBits;
+								} else {
+									const color = generator.color as "red" | "green" | "blue";
+									bulkPixels[color] += bitsToAdd;
+								}
 							}
 						}
+					});
+
+					// Single bulk update for all pixels - no stream updates during catchup
+					if (bulkPixels.red > 0 || bulkPixels.green > 0 || bulkPixels.blue > 0) {
+						pixels.addPixelsBulk(bulkPixels);
 					}
-				});
+				} else {
+					// Normal mode: keep existing behavior for smooth visual updates
+					Object.values(state.generators).forEach((generator) => {
+						if (generator.owned && generator.level > 0) {
+							const rate = generator.baseRate * generator.level;
+							const multiplier = Object.values(state.powerups).reduce(
+								(mult, powerup) => {
+									if (powerup.level > 0) {
+										return mult * Math.pow(powerup.multiplier, powerup.level);
+									}
+									return mult;
+								},
+								1,
+							);
+
+							// Apply lumen synergies
+							const lumenBoost = lumen.getRGBGeneratorMultiplier();
+							const overflowBoost = lumen.getRGBBoostFromOverflow();
+							const totalLumenMultiplier = lumenBoost * overflowBoost;
+
+							// Apply pure color multipliers for matching colors
+							let pureColorMultiplier = 1;
+							if (generator.color === "random") {
+								pureColorMultiplier = pureColors.getRandomGeneratorMultiplier();
+							} else if (generator.color === "red" || generator.color === "green" || generator.color === "blue") {
+								pureColorMultiplier = pureColors.getPureColorMultiplier(generator.color);
+							}
+
+							// Apply soft cap efficiency, lumen multipliers, and pure color multipliers to this generator's rate
+							const effectiveRate = rate * multiplier * efficiencyRatio * totalLumenMultiplier * pureColorMultiplier;
+							// Add fractional bits to accumulator
+							state.bitAccumulator[generator.id] += effectiveRate * deltaTime;
+
+							// Convert whole bits from accumulator
+							const bitsToAdd = Math.floor(state.bitAccumulator[generator.id]);
+							if (bitsToAdd > 0) {
+								state.bitAccumulator[generator.id] -= bitsToAdd; // Remove whole bits, keep fractional
+
+								// Track pixels for stream visualization
+								const streamPixels: ("red" | "green" | "blue")[] = [];
+
+								if (generator.color === "random") {
+									// Random color selection
+									const colors: ("red" | "green" | "blue")[] = [
+										"red",
+										"green",
+										"blue",
+									];
+									for (let i = 0; i < bitsToAdd; i++) {
+										const randomColor = colors[Math.floor(Math.random() * 3)];
+										pixels.addPixel(randomColor);
+										streamPixels.push(randomColor);
+									}
+								} else {
+									// Specific color
+									const color = generator.color as "red" | "green" | "blue";
+									for (let i = 0; i < bitsToAdd; i++) {
+										pixels.addPixel(color);
+										streamPixels.push(color);
+									}
+								}
+
+								// Add pixels to stream visualization
+								if (streamPixels.length > 0) {
+									pixelStream.addPixels(streamPixels);
+								}
+							}
+						}
+					});
+				}
 
 				return {
 					...state,
@@ -842,9 +905,13 @@ export const isTabUnlocked = derived(
 	($status) => (tabId: string) => $status[tabId]?.unlocked ?? false,
 );
 
-// Generator tick system
+// Register with the unified game loop
 if (typeof window !== "undefined") {
-	setInterval(() => {
-		upgrades.processAutoTick();
-	}, TICK_INTERVAL);
+	import("./gameLoop").then(({ gameLoop }) => {
+		gameLoop.register({
+			tick: (deltaTime: number) => upgrades.processAutoTick(deltaTime)
+		});
+		// Start the game loop if not already started
+		gameLoop.start();
+	});
 }

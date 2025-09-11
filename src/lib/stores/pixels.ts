@@ -111,6 +111,14 @@ function createPixelStore() {
 				[color]: counts[color] + 1,
 			}));
 		},
+		addPixelsBulk: (amounts: { red?: number; green?: number; blue?: number }) => {
+			update((counts) => ({
+				...counts,
+				red: counts.red + (amounts.red || 0),
+				green: counts.green + (amounts.green || 0),
+				blue: counts.blue + (amounts.blue || 0),
+			}));
+		},
 		convertToWhite: (totalConversions: number = 0, breakthroughs?: any, lumenCostReduction = 1) => {
 			update((counts) => {
 				const cost = calculateConversionCost(counts.lifetimeWhite, breakthroughs, lumenCostReduction);

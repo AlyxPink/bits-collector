@@ -3,6 +3,7 @@ import { pixels, type PixelCounts } from "./pixels";
 import { upgrades, type UpgradeState } from "./upgrades";
 import { gameStats, type GameStats } from "./game";
 
+
 export interface SaveData {
 	version: number;
 	timestamp: number;
@@ -97,18 +98,11 @@ export function importSave(fileContent: string): boolean {
 	}
 }
 
-export function checkAndClearIfNeeded(): void {
-	if (typeof window === "undefined") return;
-
-	if (localStorage.getItem("needsReset") === "true") {
-		localStorage.clear();
-	}
-}
 
 export function resetGame(): void {
 	// Set a flag that persists through reload
 	localStorage.setItem("needsReset", "true");
-
+	
 	// Reload the page to reset everything
 	window.location.reload();
 }

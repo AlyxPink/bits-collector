@@ -1,15 +1,12 @@
 <script lang="ts">
 import "../app.css";
+import "$lib/stores/resetChecker"; // Import FIRST - must run before any stores load
 import { inputController } from "$lib/stores/inputController";
-import { checkAndClearIfNeeded } from "$lib/stores/saveManager";
 import { onMount } from "svelte";
 
 let { children } = $props();
 
 onMount(() => {
-	// Check for reset flag before any stores initialize
-	checkAndClearIfNeeded();
-	
 	// Global keyboard event listeners
 	const handleKeyDown = (event: KeyboardEvent) => {
 		inputController.keyDown(event.key);

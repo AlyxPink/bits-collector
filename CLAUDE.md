@@ -61,7 +61,16 @@ The game uses Svelte stores for reactive state management with localStorage pers
 
 - **`saveManager.ts`**: Centralized save/load functionality
 
+- **`resetChecker.ts`**: Game reset functionality (runs before stores initialize)
+
 - **`inputController.ts`**: Keyboard and gamepad input handling
+
+- **`gameLoop.ts`**: **Unified game timer system** (DO NOT MODIFY)
+  - Single master timer running at 100ms intervals (configurable via TICK_INTERVAL)
+  - Coordinates all auto-generation systems: generators, auto-converters, lumen
+  - Provides accurate deltaTime calculation for offline progress catchup
+  - **Fast Catchup Mode**: When deltaTime > 5 minutes, skips individual loops and visual effects for performance
+  - **Critical**: All timing-dependent systems MUST use this unified timer - never add separate setInterval calls
 
 ### Configuration Architecture
 
@@ -128,11 +137,14 @@ src/lib/components/
 4. **Breakthroughs**: Overcome soft caps by purchasing breakthrough upgrades
 5. **Multipliers**: Powerups multiply all generator rates exponentially
 6. **Accumulator System**: Fractional bits accumulate over time to handle sub-1 rates
+7. **Offline Progress**: Unified timer system provides efficient offline progress calculation
+8. **Fast Catchup Mode**: When away >5 minutes, bulk calculations skip visual effects for performance
 
 ### Key Implementation Details
 
 - All stores auto-save to localStorage on changes
-- The game handles tab/window inactivity by calculating delta time
+- **Unified timing system**: Single game loop coordinates all auto-generation (generators, auto-converters, lumen)
+- **Offline progress optimization**: Fast catchup mode eliminates CPU spikes when returning after hours away
 - Bit accumulator prevents loss of fractional bits between ticks
 - Random generator distributes bits evenly across RGB colors
 - Powerup multipliers stack multiplicatively (from config: 2x * 5x = 10x)
@@ -141,6 +153,28 @@ src/lib/components/
 - Configuration is resolved at build time with zero runtime performance cost
 - Config changes automatically propagate through stores to UI components
 - Tree-shakeable imports ensure optimal bundle size for unused configurations
+- **Reset system**: Dependency-free module ensures localStorage clears before store initialization
+
+### Reset System Architecture
+
+The game implements a robust reset system that completely clears all game data:
+
+**How It Works:**
+1. **Reset Trigger**: `resetGame()` in `saveManager.ts` sets a `needsReset` flag in localStorage and reloads the page
+2. **Reset Execution**: `resetChecker.ts` (imported first in `+layout.svelte`) checks for the flag on page load
+3. **Timing Guarantee**: Reset happens BEFORE any stores can initialize and load old data
+4. **Clean State**: Stores find empty localStorage and create fresh initial state
+
+**Critical Design:**
+- `resetChecker.ts` has **zero imports** to avoid circular dependencies
+- Imported as the **first module** in `+layout.svelte` to ensure execution order
+- Prevents the race condition where stores load data before reset completes
+- Single-reload operation (no double-reload needed)
+
+**Why This Architecture:**
+- **Original Problem**: Stores imported saveManager → caused circular dependency → reset ran too late
+- **Solution**: Separate reset checker with no dependencies → runs before any store initialization
+- **Result**: Guaranteed reset on first page reload, no timing issues
 
 ### Deployment Configuration
 

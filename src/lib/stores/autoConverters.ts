@@ -199,6 +199,24 @@ function createAutoConvertersStore() {
 			return currentWhite >= cost;
 		},
 
+		// Check if player can purchase a converter (checks color prerequisites)
+		canPurchaseConverter: (converterId: keyof AutoConverterState): boolean => {
+			const converters = get({ subscribe });
+			const converter = converters[converterId];
+			const colors = get(compositeColors);
+			
+			// For pure color converters, check if the target color is unlocked
+			if (converter.type === "pure" && converter.targetColor) {
+				const targetColorData = colors[converter.targetColor as keyof typeof colors];
+				if (!targetColorData || !targetColorData.unlocked) {
+					return false;
+				}
+			}
+			
+			// Mixed color converters don't require color unlock (they help you get the colors!)
+			return true;
+		},
+
 		// Purchase/upgrade a converter
 		upgradeConverter: (converterId: keyof AutoConverterState): boolean => {
 			const converters = get({ subscribe });
@@ -418,7 +436,7 @@ function createAutoConvertersStore() {
 			});
 		},
 
-		// Get all unlocked converters for UI
+		// Get all unlocked converters for UI (based on lifetime white pixels only)
 		getUnlockedConverters: (): AutoConverter[] => {
 			const converters = get({ subscribe });
 			const lifetimeWhite = get(pixels).lifetimeWhite;

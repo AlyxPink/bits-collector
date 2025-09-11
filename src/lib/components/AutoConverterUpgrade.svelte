@@ -18,10 +18,12 @@
 	let isPurchasing = $state(false);
 
 	let cost = $derived(autoConverters.getUpgradeCost(converter.id as any));
+	let canPurchase = $derived(autoConverters.canPurchaseConverter(converter.id as any));
 	let canAfford = $derived(
-		$pixels.white >= cost && converter.level < converter.maxLevel,
+		$pixels.white >= cost && converter.level < converter.maxLevel && canPurchase,
 	);
 	let rate = $derived(autoConverters.getConversionRate(converter.id as any));
+	let isLocked = $derived(!canPurchase);
 	let nextLevelRate = $derived(
 		converter.level >= converter.maxLevel
 			? 0
@@ -64,7 +66,7 @@
 	);
 
 	function handlePurchase() {
-		if (!canAfford || isPurchasing || converter.level >= converter.maxLevel)
+		if (!canAfford || isPurchasing || converter.level >= converter.maxLevel || isLocked)
 			return;
 
 		isPurchasing = true;
@@ -171,6 +173,15 @@
 			class="w-full p-3 bg-yellow-500/10 border border-yellow-500/30 rounded text-center"
 		>
 			<span class="text-yellow-400 font-bold">MAX LEVEL</span>
+		</div>
+	{:else if isLocked}
+		<div
+			class="w-full p-3 bg-red-500/10 border border-red-500/30 rounded text-center"
+		>
+			<div class="text-red-400 font-bold mb-1">🔒 LOCKED</div>
+			<div class="text-red-300 text-sm">
+				Unlock {converter.targetColor?.charAt(0).toUpperCase()}{converter.targetColor?.slice(1)} first
+			</div>
 		</div>
 	{:else}
 		<GameButton

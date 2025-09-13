@@ -7,11 +7,18 @@
   import WhitePixelDisplay from "./WhitePixelDisplay.svelte";
   import MixedColorsTab from "./MixedColorsTab.svelte";
   import PureColorsTab from "./PureColorsTab.svelte";
+  import LumenTab from "./LumenTab.svelte";
 
-  let activeTab = $state<"rgb" | "mixed" | "pure">("rgb");
+  let activeTab = $state<"lumen" | "rgb" | "mixed" | "pure">("lumen");
 
   // Tab configuration with unlock requirements
   let tabs = $derived([
+    {
+      id: "lumen" as const,
+      label: "Lumen",
+      iconType: "sun" as const,
+      unlocked: true,
+    },
     {
       id: "rgb" as const,
       label: "RGB",
@@ -34,11 +41,11 @@
     },
   ]);
 
-  // Switch to RGB tab if current tab becomes locked
+  // Switch to lumen tab if current tab becomes locked
   $effect(() => {
     const currentTab = tabs.find((t) => t.id === activeTab);
     if (currentTab && !currentTab.unlocked) {
-      activeTab = "rgb";
+      activeTab = "lumen";
     }
   });
 </script>
@@ -61,7 +68,12 @@
       >
         <div class="mb-1">
           {#if tab.unlocked}
-            {#if tab.iconType === "squares"}
+            {#if tab.iconType === "sun"}
+              <!-- Lumen sun icon -->
+              <div class="w-4 h-4 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full relative">
+                <div class="absolute inset-0.5 bg-yellow-300 rounded-full animate-pulse"></div>
+              </div>
+            {:else if tab.iconType === "squares"}
               <!-- RGB squares icon -->
               <div class="flex gap-0.5">
                 <div class="w-1.5 h-1.5 bg-red-500 rounded-sm"></div>
@@ -107,7 +119,9 @@
 
   <!-- Content Area -->
   <div class="flex-1 p-6">
-    {#if activeTab === "rgb"}
+    {#if activeTab === "lumen"}
+      <LumenTab />
+    {:else if activeTab === "rgb"}
       <div class="h-full flex flex-col justify-center items-center gap-8">
         <h2
           class="text-2xl font-bold uppercase tracking-wider text-green-400 glow-text mb-4"

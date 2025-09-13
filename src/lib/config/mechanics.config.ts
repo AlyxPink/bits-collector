@@ -53,6 +53,9 @@ export const PURE_COLOR_BOOST = {
 // Auto-tick interval (milliseconds)
 export const TICK_INTERVAL = 100;
 
+// Lux display update interval (milliseconds) - faster for smoother visual feedback
+export const LUX_DISPLAY_INTERVAL = 10;
+
 // Conversion system constants
 export const CONVERSION_CONSTANTS = {
 	baseCostMultiplier: 0.25,    // For breakthrough effects

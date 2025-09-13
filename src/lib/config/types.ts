@@ -34,11 +34,20 @@ export interface LumenUpgradeConfig {
 	description: string;
 }
 
+export interface LumenGeneratorConfig {
+	name: string;
+	description: string;
+	baseRate: number; // lumen per second
+	baseCost: number; // lumen cost
+	costMultiplier: number;
+}
+
 export interface TabUnlockConfig {
 	white: number;
 	red: number;
 	green: number;
 	blue: number;
+	lumen?: number; // Optional lumen cost
 }
 
 export interface SoftCapConfig {

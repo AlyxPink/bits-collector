@@ -39,7 +39,7 @@ export const GAME_CONSTANTS = {
 	},
 
 	// Initial unlocked tabs
-	initialTabs: ["generators"] as string[],
+	initialTabs: ["luminance"] as string[],
 
 	// Audio volume defaults
 	defaultVolume: 0.3,

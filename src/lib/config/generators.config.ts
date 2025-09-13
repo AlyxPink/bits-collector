@@ -90,11 +90,18 @@ export const BREAKTHROUGH_CONFIG: Record<string, BreakthroughConfig> = {
 
 // Tab unlock requirements
 export const TAB_UNLOCK_CONFIG: Record<string, TabUnlockConfig> = {
+	luminance: {
+		white: 0,
+		red: 0,
+		green: 0,
+		blue: 0, // Always unlocked - first tab
+	},
 	generators: {
 		white: 0,
 		red: 0,
 		green: 0,
-		blue: 0, // Always unlocked
+		blue: 0,
+		lumen: 100, // Requires 100 lumen to unlock
 	},
 	autoConverters: {
 		white: 10,
@@ -107,17 +114,12 @@ export const TAB_UNLOCK_CONFIG: Record<string, TabUnlockConfig> = {
 		red: 100,
 		green: 100,
 		blue: 100,
+		lumen: 100, // Initially 100, increases to 100,000 if generators purchased
 	},
 	breakthroughs: {
 		white: 150,
 		red: 500,
 		green: 500,
 		blue: 500,
-	},
-	luminosity: {
-		white: 500,
-		red: 1000,
-		green: 1000,
-		blue: 1000,
 	},
 };

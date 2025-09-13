@@ -1,11 +1,14 @@
 import { writable, derived, get } from "svelte/store";
 import { pixels } from "./pixels";
-import { LUMEN_UPGRADE_CONFIG, LUMEN_GENERATION } from "$lib/config/gameConfig";
+import { LUMEN_UPGRADE_CONFIG, LUMEN_GENERATION, LUMEN_GENERATOR_CONFIG } from "$lib/config/gameConfig";
 
 export interface LumenState {
 	total: number;
 	lifetimeLumen: number;
 	lastTick: number;
+	generators: Record<string, LumenGenerator>;
+	prestigeLevel: number; // Number of resets performed
+	bestLumen: number; // Highest lumen ever reached in a single run
 }
 
 export interface LumenUpgrade {
@@ -18,6 +21,17 @@ export interface LumenUpgrade {
 	costMultiplier: number;
 	level: number;
 	maxLevel?: number;
+}
+
+export interface LumenGenerator {
+	id: string;
+	name: string;
+	description: string;
+	baseRate: number; // lumen per second
+	baseCost: number; // lumen cost
+	costMultiplier: number;
+	level: number;
+	owned: boolean;
 }
 
 // Default lumen upgrades
@@ -79,13 +93,31 @@ const DEFAULT_LUMEN_UPGRADES: Record<string, LumenUpgrade> = {
 	},
 };
 
+// Default lumen generators
+const DEFAULT_LUMEN_GENERATORS: Record<string, LumenGenerator> = {
+	begin: {
+		id: "begin",
+		name: LUMEN_GENERATOR_CONFIG.begin.name,
+		description: LUMEN_GENERATOR_CONFIG.begin.description,
+		baseRate: LUMEN_GENERATOR_CONFIG.begin.baseRate,
+		baseCost: LUMEN_GENERATOR_CONFIG.begin.baseCost,
+		costMultiplier: LUMEN_GENERATOR_CONFIG.begin.costMultiplier,
+		level: 0,
+		owned: false,
+	},
+};
+
 // Load saved state from localStorage
 function loadLumenState(): LumenState & { upgrades: Record<string, LumenUpgrade> } {
+	const now = Date.now();
 	const defaultState = {
-		total: 0,
+		total: LUMEN_GENERATION.initialLumen,
 		lifetimeLumen: 0,
-		lastTick: Date.now(),
+		lastTick: now,
+		generators: { ...DEFAULT_LUMEN_GENERATORS },
 		upgrades: { ...DEFAULT_LUMEN_UPGRADES },
+		prestigeLevel: 0,
+		bestLumen: 0,
 	};
 
 	if (typeof window === "undefined") {
@@ -96,11 +128,15 @@ function loadLumenState(): LumenState & { upgrades: Record<string, LumenUpgrade>
 	if (saved) {
 		try {
 			const parsed = JSON.parse(saved);
+			const now = Date.now();
 			return {
-				total: parsed.total || 0,
+				total: parsed.total ?? LUMEN_GENERATION.initialLumen,
 				lifetimeLumen: parsed.lifetimeLumen || 0,
-				lastTick: parsed.lastTick || Date.now(),
+				lastTick: parsed.lastTick || now,
+				generators: { ...DEFAULT_LUMEN_GENERATORS, ...parsed.generators },
 				upgrades: { ...DEFAULT_LUMEN_UPGRADES, ...parsed.upgrades },
+				prestigeLevel: parsed.prestigeLevel || 0,
+				bestLumen: parsed.bestLumen || 0,
 			};
 		} catch {
 			return defaultState;
@@ -181,6 +217,7 @@ function createLumenStore() {
 		}
 	});
 
+
 	return {
 		subscribe,
 		update,
@@ -239,6 +276,53 @@ function createLumenStore() {
 			return false;
 		},
 
+		// Get generator cost
+		getGeneratorCost: (id: string): number => {
+			const state = get({ subscribe });
+			const generator = state.generators[id];
+			if (!generator) return 0;
+			if (generator.level === 0) return generator.baseCost; // First purchase
+			return Math.floor(
+				generator.baseCost * Math.pow(generator.costMultiplier, generator.level)
+			);
+		},
+
+		// Get generator rate
+		getGeneratorRate: (id: string): number => {
+			const state = get({ subscribe });
+			const generator = state.generators[id];
+			if (!generator || generator.level === 0) return 0;
+			return generator.baseRate * generator.level;
+		},
+
+		// Purchase generator
+		purchaseGenerator: (id: string): boolean => {
+			const state = get({ subscribe });
+			const generator = state.generators[id];
+			if (!generator) return false;
+
+			const cost = generator.level === 0 ? 
+				generator.baseCost : 
+				Math.floor(generator.baseCost * Math.pow(generator.costMultiplier, generator.level));
+
+			if (state.total >= cost) {
+				update((state) => ({
+					...state,
+					total: state.total - cost,
+					generators: {
+						...state.generators,
+						[id]: {
+							...generator,
+							level: generator.level + 1,
+							owned: true,
+						},
+					},
+				}));
+				return true;
+			}
+			return false;
+		},
+
 		// Process lumen generation tick
 		processLumenTick: (deltaTimeSeconds?: number) => {
 			const now = Date.now();
@@ -247,17 +331,42 @@ function createLumenStore() {
 				const deltaTime = deltaTimeSeconds ?? (now - state.lastTick) / 1000;
 				const pixelCount = get(pixels);
 
-				const lumenPerSec = calculateLumenPerSecond(
+				// White pixel based lumen generation (existing system)
+				const whiteLumenPerSec = calculateLumenPerSecond(
 					pixelCount.white,
 					state.upgrades
 				);
-				const lumenGained = lumenPerSec * deltaTime;
 
+				// Generator based Lux generation (generators now produce Lux, not Lumen)
+				let generatorLuxPerSec = 0;
+				Object.values(state.generators).forEach(generator => {
+					if (generator.owned && generator.level > 0) {
+						generatorLuxPerSec += generator.baseRate * generator.level;
+					}
+				});
+
+				// Only white pixels generate Lumen now
+				const lumenGained = whiteLumenPerSec * deltaTime;
+				
+				// Generators produce Lux
+				const luxGained = generatorLuxPerSec * deltaTime;
+
+				const newTotal = state.total + lumenGained;
+				
+				// Add Lux to the Lux store if generators produced any
+				if (luxGained > 0) {
+					import("./lux").then(({ lux }) => {
+						lux.addLux(luxGained);
+					});
+				}
+				
 				return {
 					...state,
-					total: state.total + lumenGained,
+					total: newTotal,
 					lifetimeLumen: state.lifetimeLumen + lumenGained,
 					lastTick: now,
+					// Update best lumen if we reached a new high
+					bestLumen: Math.max(state.bestLumen, newTotal),
 				};
 			});
 		},
@@ -303,13 +412,29 @@ function createLumenStore() {
 		},
 
 		reset: () => {
+			const now = Date.now();
 			set({
-				total: 0,
+				total: LUMEN_GENERATION.initialLumen,
 				lifetimeLumen: 0,
-				lastTick: Date.now(),
+				lastTick: now,
+				generators: { ...DEFAULT_LUMEN_GENERATORS },
 				upgrades: { ...DEFAULT_LUMEN_UPGRADES },
+				prestigeLevel: 0,
+				bestLumen: 0,
 			});
 		},
+
+		// Add lumen from prestige
+		addLumen: (amount: number) => {
+			if (amount <= 0) return;
+			update((state) => ({
+				...state,
+				total: state.total + amount,
+				lifetimeLumen: state.lifetimeLumen + amount,
+				lastTick: Date.now(),
+			}));
+		},
+
 	};
 }
 
@@ -319,7 +444,22 @@ export const lumen = createLumenStore();
 export const lumenPerSecond = derived(
 	[lumen, pixels],
 	([$lumen, $pixels]) => {
+		// Only white pixels generate Lumen now (generators produce Lux)
 		return calculateLumenPerSecond($pixels.white, $lumen.upgrades);
+	}
+);
+
+// Derived store for Lux generation from lumen generators
+export const luxPerSecondFromGenerators = derived(
+	[lumen],
+	([$lumen]) => {
+		let luxPerSec = 0;
+		Object.values($lumen.generators).forEach(generator => {
+			if (generator.owned && generator.level > 0) {
+				luxPerSec += generator.baseRate * generator.level;
+			}
+		});
+		return luxPerSec;
 	}
 );
 

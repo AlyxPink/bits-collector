@@ -2,7 +2,7 @@
 import { pixels } from "$lib/stores/pixels";
 import { mixedColors, mixedColorsUnlocked } from "$lib/stores/mixedColors";
 import { pureColors, pureColorsUnlocked } from "$lib/stores/pureColors";
-import { lumen } from "$lib/stores/lumen";
+import { lux, formatLux, WINNING_GOAL } from "$lib/stores/lux";
 import SettingsButton from "./SettingsButton.svelte";
 
 interface Props {
@@ -11,21 +11,33 @@ interface Props {
 
 let { onSettingsClick }: Props = $props();
 
-// Format lumen numbers for display
-function formatLumen(num: number): string {
-	if (num < 1000) return num.toFixed(1);
-	if (num < 1000000) return (num / 1000).toFixed(2) + "K";
-	if (num < 1000000000) return (num / 1000000).toFixed(2) + "M";
-	if (num < 1000000000000) return (num / 1000000000).toFixed(2) + "B";
-	if (num < 1e15) return (num / 1e12).toFixed(2) + "T";
-	if (num < 1e18) return (num / 1e15).toFixed(2) + "Qa";
-	if (num < 1e21) return (num / 1e18).toFixed(2) + "Qi";
-	// Use scientific notation for truly absurd numbers
-	return num.toExponential(2);
+// Get dynamic styling based on lux amount
+function getLuxStyling(total: number, intensity: number) {
+	const baseClasses = "text-2xl font-bold bg-gradient-to-r from-purple-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent transition-all duration-500";
+	
+	// Add glow effects based on amount
+	if (total < 1000) {
+		return `${baseClasses} drop-shadow-[0_0_8px_rgba(168,85,247,${0.3 + intensity * 0.2})]`;
+	} else if (total < 100000) {
+		return `${baseClasses} drop-shadow-[0_0_15px_rgba(168,85,247,${0.4 + intensity * 0.3})] hover:scale-105`;
+	} else if (total < 10000000) {
+		return `${baseClasses} drop-shadow-[0_0_20px_rgba(168,85,247,${0.5 + intensity * 0.4})] hover:scale-105 animate-pulse`;
+	} else {
+		return `${baseClasses} drop-shadow-[0_0_25px_rgba(168,85,247,${0.6 + intensity * 0.4})] hover:scale-105 animate-pulse`;
+	}
 }
 
-// The absurd winning goal - like Prestige Tree's endgame
-const WINNING_GOAL = 1.79e308; // Near JavaScript's max number
+function getLuxContainerStyling(total: number, intensity: number) {
+	const baseClasses = "bg-gradient-to-r backdrop-blur-sm border rounded-lg px-4 py-2 transition-all duration-500";
+	
+	if (total < 1000) {
+		return `${baseClasses} from-purple-900/10 to-cyan-900/10 border-purple-500/20`;
+	} else if (total < 100000) {
+		return `${baseClasses} from-purple-900/20 to-cyan-900/20 border-purple-500/30`;
+	} else {
+		return `${baseClasses} from-purple-900/30 to-cyan-900/30 border-purple-500/40 shadow-[0_0_30px_rgba(168,85,247,${0.2 + intensity * 0.3})]`;
+	}
+}
 </script>
 
 <nav class="sticky top-0 bg-black/90 backdrop-blur-sm border-b border-green-500/30 z-50">
@@ -89,14 +101,22 @@ const WINNING_GOAL = 1.79e308; // Near JavaScript's max number
         {/if}
       </div>
       
-      <!-- Center: Lumen Display -->
+      <!-- Center: Lux Display -->
       <div class="flex-1 text-center">
-        <div class="flex items-center justify-center gap-2">
-          <span class="text-2xl">💡</span>
-          <span class="text-xl font-bold text-yellow-300">Lumens: {formatLumen($lumen.total)}</span>
+        <div class="flex items-center justify-center gap-3">
+          <div class={getLuxContainerStyling($lux.displayTotal, lux.getDisplayIntensity())}>
+            <span class={getLuxStyling($lux.displayTotal, lux.getDisplayIntensity())}>
+              Lux: {formatLux($lux.displayTotal)}
+            </span>
+          </div>
+          {#if lux.getPrestigeLevel() > 0}
+            <div class="text-xs bg-gradient-to-r from-amber-400 to-yellow-400 bg-clip-text text-transparent font-semibold">
+              ★{lux.getPrestigeLevel()}
+            </div>
+          {/if}
         </div>
-        <div class="text-xs text-yellow-200/70">
-          Reach {formatLumen(WINNING_GOAL)} to become the brightest light in the universe
+        <div class="text-xs text-purple-200/70 mt-1">
+          Reach {formatLux(WINNING_GOAL)} to transcend reality itself
         </div>
       </div>
       
@@ -108,9 +128,3 @@ const WINNING_GOAL = 1.79e308; // Near JavaScript's max number
   </div>
 </nav>
 
-<style>
-  /* Add glow effect when lumen count is high */
-  :global(.lumen-glow) {
-    text-shadow: 0 0 10px rgba(255, 193, 7, 0.6);
-  }
-</style>

@@ -1,4 +1,4 @@
-import type { LumenUpgradeConfig } from "./types";
+import type { LumenUpgradeConfig, LumenGeneratorConfig } from "./types";
 
 // Lumen upgrade configurations
 export const LUMEN_UPGRADE_CONFIG: Record<string, LumenUpgradeConfig> = {
@@ -29,10 +29,22 @@ export const LUMEN_UPGRADE_CONFIG: Record<string, LumenUpgradeConfig> = {
 	},
 };
 
+// Lumen generator configurations (these actually generate Lux and cost Lumen)
+export const LUMEN_GENERATOR_CONFIG: Record<string, LumenGeneratorConfig> = {
+	begin: {
+		name: "Begin",
+		description: "Start generating Lux with this basic generator",
+		baseRate: 1.0, // 1 Lux per second
+		baseCost: 1, // Costs 1 lumen for first upgrade
+		costMultiplier: 2.0, // Standard doubling
+	},
+};
+
 // Lumen generation constants
 export const LUMEN_GENERATION = {
 	baseRequirement: 1,      // Minimum white pixels to generate lumen
 	scalingFactor: 2.0,      // How much requirement increases per level
 	overflowThreshold: 1000, // White pixels needed for overflow bonus
 	overflowMultiplier: 1.2, // RGB bonus from overflow
+	initialLumen: 0,         // Starting lumen amount
 };

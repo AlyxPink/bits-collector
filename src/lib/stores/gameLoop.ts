@@ -59,7 +59,7 @@ function createGameLoopStore() {
 		}
 	});
 
-	let intervalId: number | null = null;
+	let intervalId: ReturnType<typeof setInterval> | null = null;
 	const registeredSystems = new Set<GameSystem>();
 
 	return {

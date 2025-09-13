@@ -73,17 +73,17 @@ export interface UpgradeState {
 
 // Tab unlock requirements configuration
 export const TAB_UNLOCK_REQUIREMENTS: Record<string, TabUnlock> = {
+	luminance: {
+		id: "luminance",
+		name: "Luminance",
+		icon: "💡",
+		unlockCost: TAB_UNLOCK_CONFIG.luminance
+	},
 	generators: {
 		id: "generators",
 		name: "Generators",
 		icon: "🤖",
 		unlockCost: TAB_UNLOCK_CONFIG.generators
-	},
-	autoConverters: {
-		id: "autoConverters",
-		name: "Auto Converters",
-		icon: "⚙️",
-		unlockCost: TAB_UNLOCK_CONFIG.autoConverters
 	},
 	powerups: {
 		id: "powerups",
@@ -91,17 +91,17 @@ export const TAB_UNLOCK_REQUIREMENTS: Record<string, TabUnlock> = {
 		icon: "⚡",
 		unlockCost: TAB_UNLOCK_CONFIG.powerups
 	},
+	autoConverters: {
+		id: "autoConverters",
+		name: "Auto Converters",
+		icon: "⚙️",
+		unlockCost: TAB_UNLOCK_CONFIG.autoConverters
+	},
 	breakthroughs: {
 		id: "breakthroughs",
 		name: "Breakthroughs",
 		icon: "🚀",
 		unlockCost: TAB_UNLOCK_CONFIG.breakthroughs
-	},
-	luminosity: {
-		id: "luminosity",
-		name: "Luminosity",
-		icon: "💡",
-		unlockCost: TAB_UNLOCK_CONFIG.luminosity
 	},
 };
 
@@ -369,6 +369,26 @@ function loadUpgrades(): UpgradeState {
 	};
 }
 
+// Helper function to calculate dynamic lumen cost with mutual exclusivity
+function getDynamicLumenCost(tabId: string, unlockedTabs: string[]): number {
+	const tabConfig = TAB_UNLOCK_REQUIREMENTS[tabId];
+	const unlockCost = tabConfig.unlockCost as TabUnlockCost & { lumen?: number };
+	const baseLumenCost = unlockCost.lumen ?? 0;
+	
+	// No lumen cost if not configured
+	if (baseLumenCost === 0) return 0;
+	
+	// Handle mutual exclusivity between generators and powerups
+	if (tabId === "generators" && unlockedTabs.includes("powerups")) {
+		return 100000; // 100,000 lumen if powerups already purchased
+	}
+	if (tabId === "powerups" && unlockedTabs.includes("generators")) {
+		return 100000; // 100,000 lumen if generators already purchased
+	}
+	
+	return baseLumenCost; // Default cost
+}
+
 function createUpgradesStore() {
 	const { subscribe, update, set } = writable<UpgradeState>(loadUpgrades());
 
@@ -524,6 +544,7 @@ function createUpgradesStore() {
 		purchaseTabUnlock: (tabId: string): boolean => {
 			const state = get({ subscribe });
 			const pixelCount = get(pixels);
+			const lumenCount = get(lumen);
 			const tabConfig = TAB_UNLOCK_REQUIREMENTS[tabId];
 
 			// Check if tab is already unlocked
@@ -531,14 +552,19 @@ function createUpgradesStore() {
 				return false;
 			}
 
+			// Get dynamic lumen cost (handles mutual exclusivity)
+			const lumenCost = getDynamicLumenCost(tabId, state.unlockedTabs);
+
 			// Check if player has enough resources
-			const hasEnoughResources = 
+			const hasEnoughPixels = 
 				pixelCount.white >= tabConfig.unlockCost.white &&
 				pixelCount.red >= tabConfig.unlockCost.red &&
 				pixelCount.green >= tabConfig.unlockCost.green &&
 				pixelCount.blue >= tabConfig.unlockCost.blue;
+				
+			const hasEnoughLumen = lumenCost === 0 || lumenCount.total >= lumenCost;
 
-			if (hasEnoughResources) {
+			if (hasEnoughPixels && hasEnoughLumen) {
 				// Deduct costs from pixels
 				pixels.update((p) => ({
 					...p,
@@ -547,6 +573,14 @@ function createUpgradesStore() {
 					green: p.green - tabConfig.unlockCost.green,
 					blue: p.blue - tabConfig.unlockCost.blue,
 				}));
+
+				// Deduct lumen cost if any
+				if (lumenCost > 0) {
+					lumen.update((l) => ({
+						...l,
+						total: l.total - lumenCost,
+					}));
+				}
 
 				// Add tab to unlocked tabs
 				update((state) => ({
@@ -874,20 +908,26 @@ export const hasUnlockedUpgrades = derived(
 );
 
 // Tab unlock status derived stores
-export const tabUnlockStatus = derived([pixels, upgrades], ([$pixels, $upgrades]) => {
+export const tabUnlockStatus = derived([pixels, upgrades, lumen], ([$pixels, $upgrades, $lumen]) => {
 	const status: Record<
 		string,
-		{ unlocked: boolean; cost: TabUnlockCost; canAfford: boolean }
+		{ unlocked: boolean; cost: TabUnlockCost & { lumen?: number }; canAfford: boolean }
 	> = {};
 
 	Object.values(TAB_UNLOCK_REQUIREMENTS).forEach((tabReq) => {
 		const unlocked = $upgrades.unlockedTabs.includes(tabReq.id);
-		const cost = tabReq.unlockCost;
+		const baseCost = tabReq.unlockCost;
+		
+		// Get dynamic lumen cost including mutual exclusivity
+		const lumenCost = getDynamicLumenCost(tabReq.id, $upgrades.unlockedTabs);
+		const cost = { ...baseCost, lumen: lumenCost > 0 ? lumenCost : undefined };
+		
 		const canAfford = !unlocked && (
-			$pixels.white >= cost.white &&
-			$pixels.red >= cost.red &&
-			$pixels.green >= cost.green &&
-			$pixels.blue >= cost.blue
+			$pixels.white >= baseCost.white &&
+			$pixels.red >= baseCost.red &&
+			$pixels.green >= baseCost.green &&
+			$pixels.blue >= baseCost.blue &&
+			(lumenCost === 0 || $lumen.total >= lumenCost)
 		);
 			
 		status[tabReq.id] = {

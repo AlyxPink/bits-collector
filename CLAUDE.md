@@ -182,10 +182,12 @@ The project uses `@sveltejs/adapter-cloudflare` for deployment. The adapter is c
 
 ### CSS Architecture
 
-The app uses TailwindCSS v4 with custom game-specific classes defined in `src/app.css`:
-- `.pixel-button`: Base button styling with glow effects
-- `.stats-label`: Consistent label styling
+The app uses TailwindCSS v4 with a utility-first approach:
+- **IMPORTANT**: Avoid using `@apply` directive - use Tailwind utility classes directly in HTML
+- Use custom CSS only for complex animations that can't be achieved with Tailwind utilities
+- `.pixel-button`: Base button styling with glow effects (uses minimal custom CSS)
 - Extensive use of CSS variables for theming
+- Prefer component composition and conditional classes over CSS abstractions
 
 ### Testing Approach
 

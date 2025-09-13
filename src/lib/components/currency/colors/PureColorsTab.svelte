@@ -1,6 +1,6 @@
 <script lang="ts">
   import { pureColors } from "$lib/currency/implementations/PureColorsCurrency";
-  import ColorButton from "./ColorButton.svelte";
+  import ColorButton from "$lib/components/currency/pixels/ColorButton.svelte";
 
   let pureColorsList = $derived(pureColors.getPureColors());
   let unlockedCount = $derived(pureColors.getUnlockedCount());

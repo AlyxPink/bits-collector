@@ -9,7 +9,7 @@ import { audio } from "$lib/stores/audio";
 import { upgradeColorToVariant } from "$lib/utils/colors";
 import GameCard from "$lib/components/ui/GameCard.svelte";
 import GameButton from "$lib/components/ui/GameButton.svelte";
-import PureColorBoostIndicator from "$lib/components/PureColorBoostIndicator.svelte";
+import PureColorBoostIndicator from "$lib/components/currency/colors/PureColorBoostIndicator.svelte";
 
 interface Props {
 	upgrade: GeneratorUpgrade;

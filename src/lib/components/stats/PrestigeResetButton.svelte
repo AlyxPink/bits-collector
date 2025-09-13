@@ -11,8 +11,8 @@
   }
 
   $: canPrestige = $lux.total >= 10;
-  $: currentReward = lux.getLumenReward();
-  $: nextThreshold = lux.getNextThreshold();
+  $: currentReward = $lux.total >= 0 ? lux.getLumenReward() : 0;
+  $: nextThreshold = $lux.total >= 0 ? lux.getNextThreshold() : { lux: 10, reward: 1 };
 </script>
 
 <!-- Prestige Reset Section -->

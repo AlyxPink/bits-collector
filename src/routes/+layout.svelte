@@ -2,7 +2,7 @@
 import "../app.css";
 import "$lib/stores/resetChecker"; // Import FIRST - must run before any stores load
 import { inputController } from "$lib/stores/inputController";
-import VersionFooter from "$lib/components/VersionFooter.svelte";
+import VersionFooter from "$lib/components/layout/VersionFooter.svelte";
 import { onMount } from "svelte";
 
 let { children } = $props();

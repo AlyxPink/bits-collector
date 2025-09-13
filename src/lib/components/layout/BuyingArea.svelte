@@ -9,13 +9,13 @@
   import { pixels } from "$lib/currency/implementations/PixelsCurrency";
   import { lumen } from "$lib/currency/implementations/LumenCurrency";
   import { onMount } from "svelte";
-  import GeneratorUpgrade from "./GeneratorUpgrade.svelte";
-  import PowerupUpgrade from "./PowerupUpgrade.svelte";
-  import BreakthroughUpgrade from "./BreakthroughUpgrade.svelte";
-  import LuminosityUpgrade from "./LuminosityUpgrade.svelte";
-  import LumenGeneratorUpgrade from "./LumenGeneratorUpgrade.svelte";
-  import AutoConvertersTab from "./AutoConvertersTab.svelte";
-  import PrestigeResetButton from "./PrestigeResetButton.svelte";
+  import GeneratorUpgrade from "$lib/components/upgrades/GeneratorUpgrade.svelte";
+  import PowerupUpgrade from "$lib/components/upgrades/PowerupUpgrade.svelte";
+  import BreakthroughUpgrade from "$lib/components/upgrades/BreakthroughUpgrade.svelte";
+  import LuminosityUpgrade from "$lib/components/upgrades/LuminosityUpgrade.svelte";
+  import LumenGeneratorUpgrade from "$lib/components/upgrades/LumenGeneratorUpgrade.svelte";
+  import AutoConvertersTab from "$lib/components/upgrades/AutoConvertersTab.svelte";
+  import PrestigeResetButton from "$lib/components/stats/PrestigeResetButton.svelte";
 
   let activeTab = $state<
     "luminance" | "generators" | "autoConverters" | "powerups" | "breakthroughs"

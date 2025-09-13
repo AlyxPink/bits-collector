@@ -2,7 +2,7 @@
   import { mixedColors } from "$lib/currency/implementations/MixedColorsCurrency";
   import { pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";
   import { formatRecipeComponents } from "$lib/utils/recipes";
-  import ColorButton from "./ColorButton.svelte";
+  import ColorButton from "$lib/components/currency/pixels/ColorButton.svelte";
 
   let mixedColorsList = $derived(mixedColors.getMixedColors());
   let unlockedCount = $derived(mixedColors.getUnlockedCount());

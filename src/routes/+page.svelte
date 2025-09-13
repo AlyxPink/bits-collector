@@ -1,9 +1,9 @@
 <script lang="ts">
-import NavigationBar from "$lib/components/NavigationBar.svelte";
-import WidgetsArea from "$lib/components/WidgetsArea.svelte";
-import GrindingArea from "$lib/components/GrindingArea.svelte";
-import BuyingArea from "$lib/components/BuyingArea.svelte";
-import SettingsModal from "$lib/components/SettingsModal.svelte";
+import NavigationBar from "$lib/components/layout/NavigationBar.svelte";
+import WidgetsArea from "$lib/components/layout/WidgetsArea.svelte";
+import GrindingArea from "$lib/components/layout/GrindingArea.svelte";
+import BuyingArea from "$lib/components/layout/BuyingArea.svelte";
+import SettingsModal from "$lib/components/settings/SettingsModal.svelte";
 
 let settingsModalOpen = false;
 

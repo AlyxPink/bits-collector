@@ -1,7 +1,7 @@
 <script lang="ts">
-import GeneratorIndicator from "./GeneratorIndicator.svelte";
-import PixelStream from "./PixelStream.svelte";
-import GameStatsWidget from "./GameStatsWidget.svelte";
+import GeneratorIndicator from "$lib/components/upgrades/GeneratorIndicator.svelte";
+import PixelStream from "$lib/components/effects/PixelStream.svelte";
+import GameStatsWidget from "$lib/components/stats/GameStatsWidget.svelte";
 </script>
 
 <div class="h-full bg-black/10 border-r border-green-500/20 p-4 space-y-6">

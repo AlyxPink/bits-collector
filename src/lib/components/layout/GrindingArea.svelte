@@ -2,12 +2,12 @@
   import { pixels } from "$lib/stores/pixels";
   import { mixedColorsUnlocked } from "$lib/currency/implementations/MixedColorsCurrency";
   import { pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";
-  import PixelButton from "./PixelButton.svelte";
-  import ConvertButton from "./ConvertButton.svelte";
-  import WhitePixelDisplay from "./WhitePixelDisplay.svelte";
-  import MixedColorsTab from "./MixedColorsTab.svelte";
-  import PureColorsTab from "./PureColorsTab.svelte";
-  import LumenTab from "./LumenTab.svelte";
+  import PixelButton from "$lib/components/currency/pixels/PixelButton.svelte";
+  import ConvertButton from "$lib/components/currency/pixels/ConvertButton.svelte";
+  import WhitePixelDisplay from "$lib/components/currency/pixels/WhitePixelDisplay.svelte";
+  import MixedColorsTab from "$lib/components/currency/colors/MixedColorsTab.svelte";
+  import PureColorsTab from "$lib/components/currency/colors/PureColorsTab.svelte";
+  import LumenTab from "$lib/components/currency/lumen/LumenTab.svelte";
 
   let activeTab = $state<"lumen" | "rgb" | "mixed" | "pure">("lumen");
 

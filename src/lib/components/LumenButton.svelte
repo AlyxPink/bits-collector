@@ -1,5 +1,5 @@
 <script lang="ts">
-import { lumen } from "$lib/stores/lumen";
+import { lumen } from "$lib/currency/implementations/LumenCurrency";
 
 interface Props {
 	count: number;

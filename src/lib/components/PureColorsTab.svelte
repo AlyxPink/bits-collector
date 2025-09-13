@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { pureColors } from "$lib/stores/pureColors";
+  import { pureColors } from "$lib/currency/implementations/PureColorsCurrency";
   import ColorButton from "./ColorButton.svelte";
 
   let pureColorsList = $derived(pureColors.getPureColors());

@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
-import { pixels } from "$lib/stores/pixels";
-import { upgrades } from "$lib/stores/upgrades";
-import { lumen } from "$lib/stores/lumen";
+import { pixels } from "$lib/currency/implementations/PixelsCurrency";
+import { upgrades } from "$lib/currency/implementations/UpgradesCurrency";
+import { lumen } from "$lib/currency/implementations/LumenCurrency";
 
 export interface RecipeComponents {
 	red: number;

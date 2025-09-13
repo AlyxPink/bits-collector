@@ -1,10 +1,10 @@
 <script lang="ts">
 import { pixels, canConvert, conversionCost, createConversionEfficiencyStore } from "$lib/stores/pixels";
-import { gameStats } from "$lib/stores/game";
+import { gameStats } from "$lib/currency/implementations/GameStatsCurrency";
 import { audio } from "$lib/stores/audio";
 import { inputController } from "$lib/stores/inputController";
-import { lumen } from "$lib/stores/lumen";
-import { upgrades } from "$lib/stores/upgrades";
+import { lumen } from "$lib/currency/implementations/LumenCurrency";
+import { upgrades } from "$lib/currency/implementations/UpgradesCurrency";
 import { getWhiteConversionRecipe } from "$lib/utils/recipes";
 
 let isConverting = $state(false);

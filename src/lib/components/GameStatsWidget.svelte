@@ -1,8 +1,8 @@
 <script lang="ts">
 import { pixels, conversionCost, createConversionEfficiencyStore } from "$lib/stores/pixels";
-import { upgrades, tabUnlockStatus } from "$lib/stores/upgrades";
-import { gameStats } from "$lib/stores/game";
-import { pureColors, pureColorsUnlocked } from "$lib/stores/pureColors";
+import { upgrades, tabUnlockStatus } from "$lib/currency/implementations/UpgradesCurrency";
+import { gameStats } from "$lib/currency/implementations/GameStatsCurrency";
+import { pureColors, pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";
 
 // Create efficiency store
 const conversionEfficiency = createConversionEfficiencyStore(gameStats);

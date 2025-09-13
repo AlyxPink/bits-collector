@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { upgrades } from "$lib/stores/upgrades";
-  import { compositeColors } from "$lib/stores/compositeColors";
+  import { upgrades } from "$lib/currency/implementations/UpgradesCurrency";
+  import { compositeColors } from "$lib/currency/implementations/CompositeColorsCurrency";
 
   interface Props {
     generatorColor: "red" | "green" | "blue" | "random";

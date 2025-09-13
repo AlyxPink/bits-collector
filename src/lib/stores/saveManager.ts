@@ -1,7 +1,9 @@
 import { get } from "svelte/store";
-import { pixels, type PixelCounts } from "./pixels";
-import { upgrades, type UpgradeState } from "./upgrades";
-import { gameStats, type GameStats } from "./game";
+import { pixels, type PixelCounts } from "$lib/currency/implementations/PixelsCurrency";
+import { upgrades, type UpgradeState } from "$lib/currency/implementations/UpgradesCurrency";
+import { autoConverters, type AutoConverterState } from "$lib/currency/implementations/AutoConvertersCurrency";
+import { gameStats } from "$lib/currency/implementations/GameStatsCurrency";
+import type { StatisticCurrencyState as GameStats } from "$lib/currency/core/interfaces";
 
 
 export interface SaveData {
@@ -9,6 +11,7 @@ export interface SaveData {
 	timestamp: number;
 	pixels: PixelCounts;
 	upgrades: UpgradeState;
+	autoConverters: AutoConverterState;
 	gameStats: GameStats;
 }
 
@@ -31,6 +34,7 @@ function decodeSave(encodedData: string): SaveData | null {
 			!data.timestamp ||
 			!data.pixels ||
 			!data.upgrades ||
+			!data.autoConverters ||
 			!data.gameStats
 		) {
 			throw new Error("Invalid save structure");
@@ -51,6 +55,7 @@ export function exportSave(): void {
 		timestamp: Date.now(),
 		pixels: get(pixels),
 		upgrades: get(upgrades),
+		autoConverters: get(autoConverters),
 		gameStats: get(gameStats),
 	};
 
@@ -79,11 +84,13 @@ export function importSave(fileContent: string): boolean {
 		// Clear existing localStorage
 		localStorage.removeItem("pixelCounts");
 		localStorage.removeItem("upgrades");
+		localStorage.removeItem("autoConverters");
 		localStorage.removeItem("gameStats");
 
 		// Set new data in localStorage
 		localStorage.setItem("pixelCounts", JSON.stringify(saveData.pixels));
 		localStorage.setItem("upgrades", JSON.stringify(saveData.upgrades));
+		localStorage.setItem("autoConverters", JSON.stringify(saveData.autoConverters));
 		localStorage.setItem("gameStats", JSON.stringify(saveData.gameStats));
 
 		// Reload the page to apply changes

@@ -3,7 +3,7 @@ import {
 	upgrades,
 	totalSpeedMultiplier,
 	type GeneratorUpgrade,
-} from "$lib/stores/upgrades";
+} from "$lib/currency/implementations/UpgradesCurrency";
 import { pixels } from "$lib/stores/pixels";
 import { audio } from "$lib/stores/audio";
 import { upgradeColorToVariant } from "$lib/utils/colors";

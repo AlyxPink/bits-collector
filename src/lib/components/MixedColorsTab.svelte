@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { mixedColors } from "$lib/stores/mixedColors";
-  import { pureColorsUnlocked } from "$lib/stores/pureColors";
+  import { mixedColors } from "$lib/currency/implementations/MixedColorsCurrency";
+  import { pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";
   import { formatRecipeComponents } from "$lib/utils/recipes";
   import ColorButton from "./ColorButton.svelte";
 

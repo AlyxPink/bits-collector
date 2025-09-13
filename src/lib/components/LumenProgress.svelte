@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { lumen } from "$lib/stores/lumen";
+	import { lumen } from "$lib/currency/implementations/LumenCurrency";
 
 	// Milestone thresholds for visual feedback
 	const MILESTONES = [

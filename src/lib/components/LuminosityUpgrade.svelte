@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { lumen, type LumenUpgrade } from "$lib/stores/lumen";
+	import { lumen, type LumenUpgrade } from "$lib/currency/implementations/LumenCurrency";
 
 	interface Props {
 		upgrade: LumenUpgrade;

@@ -1,6 +1,6 @@
 <script lang="ts">
 import { pixelStream } from "$lib/stores/pixelStream";
-import { ownedGenerators, totalSpeedMultiplier } from "$lib/stores/upgrades";
+import { ownedGenerators, totalSpeedMultiplier } from "$lib/currency/implementations/UpgradesCurrency";
 import StreamHeader from "./pixel-stream/StreamHeader.svelte";
 import PixelMatrix from "./pixel-stream/PixelMatrix.svelte";
 import ColorStats from "./pixel-stream/ColorStats.svelte";

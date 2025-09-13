@@ -1,9 +1,9 @@
 <script lang="ts">
   import { audio } from "$lib/stores/audio";
-  import { upgrades } from "$lib/stores/upgrades";
+  import { upgrades } from "$lib/currency/implementations/UpgradesCurrency";
   import { formatRecipeComponents } from "$lib/utils/recipes";
-  import type { MixedColor } from "$lib/stores/mixedColors";
-  import type { PureColor } from "$lib/stores/pureColors";
+  import type { MixedColor } from "$lib/currency/implementations/MixedColorsCurrency";
+  import type { PureColor } from "$lib/currency/implementations/PureColorsCurrency";
 
   // Generic color type that works for both mixed and pure colors
   type Color = MixedColor | PureColor;

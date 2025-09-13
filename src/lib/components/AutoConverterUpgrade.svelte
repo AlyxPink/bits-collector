@@ -2,8 +2,8 @@
 	import {
 		autoConverters,
 		type AutoConverter,
-	} from "$lib/stores/autoConverters";
-	import { pixels } from "$lib/stores/pixels";
+	} from "$lib/currency/implementations/AutoConvertersCurrency";
+	import { pixels } from "$lib/currency/implementations/PixelsCurrency";
 	import { audio } from "$lib/stores/audio";
 	import { type ColorVariant } from "$lib/utils/colors";
 	import { getAutoConverterRecipe } from "$lib/utils/recipes";

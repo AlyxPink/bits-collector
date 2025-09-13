@@ -1,6 +1,6 @@
 <script lang="ts">
 import { pixels } from "$lib/stores/pixels";
-import { gameStats } from "$lib/stores/game";
+import { gameStats } from "$lib/currency/implementations/GameStatsCurrency";
 import { audio } from "$lib/stores/audio";
 import { inputController } from "$lib/stores/inputController";
 

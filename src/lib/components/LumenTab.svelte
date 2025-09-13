@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { lumen, lumenPerSecond } from "$lib/stores/lumen";
+  import { lumen, lumenPerSecond } from "$lib/currency/implementations/LumenCurrency";
   import LumenButton from "./LumenButton.svelte";
 
   // Format lumen per second to show satisfying feedback

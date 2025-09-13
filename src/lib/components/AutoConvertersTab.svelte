@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { unlockedConverters, activeConverters, autoConverters } from "$lib/stores/autoConverters";
+  import { unlockedConverters, activeConverters, autoConverters } from "$lib/currency/implementations/AutoConvertersCurrency";
   import { audio } from "$lib/stores/audio";
   import AutoConverterUpgrade from "./AutoConverterUpgrade.svelte";
   import GameButton from "$lib/components/ui/GameButton.svelte";

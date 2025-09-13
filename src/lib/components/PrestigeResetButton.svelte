@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { lux, formatLux } from "$lib/stores/lux";
-  import { lumen } from "$lib/stores/lumen";
+  import { lux, formatLux } from "$lib/currency/implementations/LuxCurrency";
+  import { lumen } from "$lib/currency/implementations/LumenCurrency";
 
   function handlePrestige() {
     const success = lux.performPrestige();

@@ -1,8 +1,8 @@
 <script lang="ts">
 import { pixels } from "$lib/stores/pixels";
-import { mixedColors, mixedColorsUnlocked } from "$lib/stores/mixedColors";
-import { pureColors, pureColorsUnlocked } from "$lib/stores/pureColors";
-import { lux, formatLux, WINNING_GOAL } from "$lib/stores/lux";
+import { mixedColors, mixedColorsUnlocked } from "$lib/currency/implementations/MixedColorsCurrency";
+import { pureColors, pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";
+import { lux, formatLux, WINNING_GOAL } from "$lib/currency/implementations/LuxCurrency";
 import SettingsButton from "./SettingsButton.svelte";
 
 interface Props {

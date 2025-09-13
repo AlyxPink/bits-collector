@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { lumen, lumenPerSecond } from "$lib/stores/lumen";
+	import { lumen, lumenPerSecond } from "$lib/currency/implementations/LumenCurrency";
 	import { onMount } from "svelte";
 
 	// Format large numbers for display

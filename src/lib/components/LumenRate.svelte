@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { lumen, lumenPerSecond, lumenEfficiency } from "$lib/stores/lumen";
+	import { lumen, lumenPerSecond, lumenEfficiency } from "$lib/currency/implementations/LumenCurrency";
 	import { pixels } from "$lib/stores/pixels";
 
 	// Format numbers for display

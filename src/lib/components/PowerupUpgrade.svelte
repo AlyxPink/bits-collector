@@ -1,5 +1,5 @@
 <script lang="ts">
-import { upgrades, type PowerupUpgrade } from "$lib/stores/upgrades";
+import { upgrades, type PowerupUpgrade } from "$lib/currency/implementations/UpgradesCurrency";
 import { pixels } from "$lib/stores/pixels";
 import { audio } from "$lib/stores/audio";
 import { type ColorVariant } from "$lib/utils/colors";

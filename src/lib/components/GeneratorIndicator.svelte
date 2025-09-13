@@ -3,7 +3,7 @@ import {
 	ownedGenerators,
 	upgrades,
 	totalSpeedMultiplier
-} from "$lib/stores/upgrades";
+} from "$lib/currency/implementations/UpgradesCurrency";
 
 let efficiency = $derived(upgrades.getProductionEfficiency());
 let efficiencyColor = $derived(

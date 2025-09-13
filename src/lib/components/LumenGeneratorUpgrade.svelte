@@ -1,5 +1,5 @@
 <script lang="ts">
-import { lumen, type LumenGenerator } from "$lib/stores/lumen";
+import { lumen, type LumenGenerator } from "$lib/currency/implementations/LumenCurrency";
 import { audio } from "$lib/stores/audio";
 import GameCard from "$lib/components/ui/GameCard.svelte";
 import GameButton from "$lib/components/ui/GameButton.svelte";

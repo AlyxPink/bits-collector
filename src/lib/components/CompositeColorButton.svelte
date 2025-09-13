@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { compositeColors, type CompositeColor, type CompositeColorState } from "$lib/stores/compositeColors";
+  import { compositeColors, type CompositeColor, type CompositeColorState } from "$lib/currency/implementations/CompositeColorsCurrency";
   import { pixels } from "$lib/stores/pixels";
   import { audio } from "$lib/stores/audio";
-  import { upgrades } from "$lib/stores/upgrades";
+  import { upgrades } from "$lib/currency/implementations/UpgradesCurrency";
   import { formatRecipeComponents, getCompositeColorRecipe } from "$lib/utils/recipes";
 
   interface Props {

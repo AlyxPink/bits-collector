@@ -5,9 +5,9 @@
     ownedGenerators,
     TAB_UNLOCK_REQUIREMENTS,
     tabUnlockStatus,
-  } from "$lib/stores/upgrades";
-  import { pixels } from "$lib/stores/pixels";
-  import { lumen } from "$lib/stores/lumen";
+  } from "$lib/currency/implementations/UpgradesCurrency";
+  import { pixels } from "$lib/currency/implementations/PixelsCurrency";
+  import { lumen } from "$lib/currency/implementations/LumenCurrency";
   import { onMount } from "svelte";
   import GeneratorUpgrade from "./GeneratorUpgrade.svelte";
   import PowerupUpgrade from "./PowerupUpgrade.svelte";

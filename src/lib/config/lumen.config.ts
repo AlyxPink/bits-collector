@@ -33,10 +33,32 @@ export const LUMEN_UPGRADE_CONFIG: Record<string, LumenUpgradeConfig> = {
 export const LUMEN_GENERATOR_CONFIG: Record<string, LumenGeneratorConfig> = {
 	begin: {
 		name: "Begin",
-		description: "Start generating Lux with this basic generator",
+		description: "Generate 1 Lux every second",
 		baseRate: 1.0, // 1 Lux per second
-		baseCost: 1, // Costs 1 lumen for first upgrade
-		costMultiplier: 2.0, // Standard doubling
+		baseCost: 1, // Costs 1 lumen for first purchase
+		costMultiplier: 1, // No cost increase (one-time purchase)
+		maxLevel: 1, // Can only be bought once
+		unlocked: true, // Always available
+	},
+	lumenBoost: {
+		name: "Lumen Boost",
+		description: "Lumens boost Lux generation",
+		baseRate: 0, // No direct generation, provides boost effect
+		baseCost: 1, // Costs 1 lumen
+		costMultiplier: 1, // No cost increase (one-time purchase)
+		maxLevel: 1, // Can only be bought once
+		unlocked: false, // Must unlock after begin
+		requiresGenerator: "begin",
+	},
+	selfSynergy: {
+		name: "Self-Synergy",
+		description: "Lux boost their own generation",
+		baseRate: 0, // No direct generation, provides boost effect
+		baseCost: 5, // Costs 5 lumens for first level
+		costMultiplier: 2.5, // Increases by 2.5x each level
+		// No maxLevel - can be upgraded infinitely
+		unlocked: false, // Must unlock after lumenBoost
+		requiresGenerator: "lumenBoost",
 	},
 };
 

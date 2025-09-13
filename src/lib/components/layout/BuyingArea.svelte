@@ -27,6 +27,13 @@
   let powerupsArray = $derived(Object.values($upgrades.powerups));
   let breakthroughsArray = $derived(Object.values($upgrades.breakthroughs));
   let luminosityArray = $derived(Object.values($lumen.upgrades));
+  // Create reactive list of unlocked generators
+  let unlockedGenerators = $derived(() => {
+    // Force reactivity by accessing $lumen state
+    const state = $lumen;
+    // Now get the unlocked generators based on current state
+    return lumen.getUnlockedGenerators();
+  });
   let efficiency = $derived(upgrades.getProductionEfficiency());
   let hasAnyUpgrades = $derived(
     $ownedGenerators.length > 0 || powerupsArray.some((p) => p.level > 0),
@@ -330,9 +337,22 @@
               <div
                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:md:grid-cols-4 gap-4"
               >
-                {#each Object.values($lumen.generators) as generator}
+                {#each unlockedGenerators() as generator}
                   <LumenGeneratorUpgrade {generator} />
                 {/each}
+              </div>
+
+              <!-- Show hint for next unlock -->
+              <div class="mt-4 text-center text-sm opacity-60">
+                {#if !$lumen.generators.begin.owned}
+                  <p>Purchase "Begin" to start generating Lux</p>
+                {:else if !$lumen.generators.lumenBoost.owned}
+                  <p>Next unlock: <span class="text-yellow-400">Lumen Boost</span> - Lumens will boost Lux generation</p>
+                {:else if !$lumen.generators.selfSynergy.owned}
+                  <p>Next unlock: <span class="text-yellow-400">Self-Synergy</span> - Lux will boost their own generation</p>
+                {:else}
+                  <p>All basic generators unlocked! Self-Synergy can be upgraded multiple times.</p>
+                {/if}
               </div>
             </div>
 

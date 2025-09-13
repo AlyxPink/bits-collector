@@ -37,9 +37,12 @@ export interface LumenUpgradeConfig {
 export interface LumenGeneratorConfig {
 	name: string;
 	description: string;
-	baseRate: number; // lumen per second
+	baseRate: number; // lux per second (not lumen per second)
 	baseCost: number; // lumen cost
 	costMultiplier: number;
+	maxLevel?: number; // Optional max level (1 for one-time purchases)
+	unlocked?: boolean; // Initial unlock status
+	requiresGenerator?: string; // Generator ID that must be owned first
 }
 
 export interface TabUnlockConfig {

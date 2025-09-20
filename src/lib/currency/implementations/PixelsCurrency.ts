@@ -29,20 +29,20 @@ export interface ConversionCost {
 // Conversion Mechanics
 // ============================================================================
 
-// Calculate dynamic conversion cost based on lifetime white pixels
-function calculateConversionCost(lifetimeWhite: number, breakthroughs?: any, lumenCostReduction = 1): ConversionCost {
+// Calculate dynamic conversion cost based on current white pixels
+function calculateConversionCost(currentWhite: number, breakthroughs?: any, lumenCostReduction = 1): ConversionCost {
 	// Smooth exponential scaling starting from base cost of 1
-	let costMultiplier = Math.pow(1 + lifetimeWhite / 10, 0.4);
+	let costMultiplier = Math.pow(1 + currentWhite / 10, 0.4);
 
 	// Progressive soft caps to slow growth at different scales
-	if (lifetimeWhite > 25) {
-		costMultiplier *= Math.pow(lifetimeWhite / 25, 0.15);
+	if (currentWhite > 25) {
+		costMultiplier *= Math.pow(currentWhite / 25, 0.15);
 	}
-	if (lifetimeWhite > 100) {
-		costMultiplier *= Math.pow(lifetimeWhite / 100, 0.25);
+	if (currentWhite > 100) {
+		costMultiplier *= Math.pow(currentWhite / 100, 0.25);
 	}
-	if (lifetimeWhite > 500) {
-		costMultiplier *= Math.pow(lifetimeWhite / 500, 0.35);
+	if (currentWhite > 500) {
+		costMultiplier *= Math.pow(currentWhite / 500, 0.35);
 	}
 
 	// Apply Conversion Catalyst breakthrough (reduces cost multiplier by 25%)
@@ -135,7 +135,7 @@ class PixelsCurrencyImpl extends MultiCurrencyBase<PixelCounts> {
 
 	convertToWhite(totalConversions: number = 0, breakthroughs?: any, lumenCostReduction = 1): boolean {
 		const counts = this.getState();
-		const cost = calculateConversionCost(counts.lifetimeWhite, breakthroughs, lumenCostReduction);
+		const cost = calculateConversionCost(counts.white, breakthroughs, lumenCostReduction);
 
 		// Check if we have enough RGB pixels for the conversion
 		if (counts.red >= cost.red && counts.green >= cost.green && counts.blue >= cost.blue) {
@@ -180,7 +180,7 @@ class PixelsCurrencyImpl extends MultiCurrencyBase<PixelCounts> {
 
 	getConversionCost(breakthroughs?: any, lumenCostReduction = 1): ConversionCost {
 		const counts = this.getState();
-		return calculateConversionCost(counts.lifetimeWhite, breakthroughs, lumenCostReduction);
+		return calculateConversionCost(counts.white, breakthroughs, lumenCostReduction);
 	}
 
 	getConversionEfficiency(totalConversions: number = 0, breakthroughs?: any): number {
@@ -189,7 +189,7 @@ class PixelsCurrencyImpl extends MultiCurrencyBase<PixelCounts> {
 
 	canConvertAtCost(totalConversions: number = 0, breakthroughs?: any, lumenCostReduction = 1): boolean {
 		const counts = this.getState();
-		const cost = calculateConversionCost(counts.lifetimeWhite, breakthroughs, lumenCostReduction);
+		const cost = calculateConversionCost(counts.white, breakthroughs, lumenCostReduction);
 		const efficiency = calculateConversionEfficiency(totalConversions, breakthroughs);
 
 		return counts.red >= cost.red &&
@@ -226,14 +226,14 @@ export const pixels = createPixelsCurrency();
 // Derived store for current conversion cost (default parameters)
 export const conversionCost = createMultiCurrencyDerived(
 	pixels,
-	(state) => calculateConversionCost(state.lifetimeWhite)
+	(state) => calculateConversionCost(state.white)
 );
 
 // Derived store to check if conversion is available at current cost
 export const canConvert = createMultiCurrencyDerived(
 	pixels,
 	(state) => {
-		const cost = calculateConversionCost(state.lifetimeWhite);
+		const cost = calculateConversionCost(state.white);
 		return state.red >= cost.red &&
 			   state.green >= cost.green &&
 			   state.blue >= cost.blue;

@@ -343,7 +343,12 @@ export function formatCurrencyAmount(amount: number, precision: number = 2): str
 		return (amount / 1000000).toFixed(precision) + "M";
 	}
 
-	return (amount / 1000000000).toFixed(precision) + "B";
+	if (amount < 1000000000000) {
+		return (amount / 1000000000).toFixed(precision) + "B";
+	}
+
+	// For very large numbers, use scientific notation
+	return amount.toExponential(precision);
 }
 
 /**

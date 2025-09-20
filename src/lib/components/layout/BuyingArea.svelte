@@ -251,7 +251,7 @@
       <div class="space-y-4">
         {#if activeTab === "generators"}
           <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:md:grid-cols-4 gap-4"
+            class="grid grid-cols-1 8xl:grid-cols-2 9xl:grid-cols-3 12xl:grid-cols-4 gap-4"
           >
             {#each generators as buyer}
               <GeneratorUpgrade upgrade={buyer} />
@@ -276,7 +276,7 @@
           <AutoConvertersTab />
         {:else if activeTab === "powerups"}
           <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:md:grid-cols-4 gap-4"
+            class="grid grid-cols-1 8xl:grid-cols-2 9xl:grid-cols-3 12xl:grid-cols-4 gap-4"
           >
             {#each powerupsArray as powerup}
               <PowerupUpgrade upgrade={powerup} />
@@ -298,7 +298,7 @@
           {/if}
         {:else if activeTab === "breakthroughs"}
           <div
-            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:md:grid-cols-4 gap-4"
+            class="grid grid-cols-1 8xl:grid-cols-2 9xl:grid-cols-3 12xl:grid-cols-4 gap-4"
           >
             {#each breakthroughsArray as breakthrough}
               <BreakthroughUpgrade {breakthrough} />
@@ -335,7 +335,7 @@
                 Lumen Generators
               </h3>
               <div
-                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:md:grid-cols-4 gap-4"
+                class="grid grid-cols-1 8xl:grid-cols-2 9xl:grid-cols-3 12xl:grid-cols-4 gap-4"
               >
                 {#each unlockedGenerators() as generator}
                   <LumenGeneratorUpgrade {generator} />
@@ -347,11 +347,21 @@
                 {#if !$lumen.generators.begin.owned}
                   <p>Purchase "Begin" to start generating Lux</p>
                 {:else if !$lumen.generators.lumenBoost.owned}
-                  <p>Next unlock: <span class="text-yellow-400">Lumen Boost</span> - Lumens will boost Lux generation</p>
+                  <p>
+                    Next unlock: <span class="text-yellow-400">Lumen Boost</span
+                    > - Lumens will boost Lux generation
+                  </p>
                 {:else if !$lumen.generators.selfSynergy.owned}
-                  <p>Next unlock: <span class="text-yellow-400">Self-Synergy</span> - Lux will boost their own generation</p>
+                  <p>
+                    Next unlock: <span class="text-yellow-400"
+                      >Self-Synergy</span
+                    > - Lux will boost their own generation
+                  </p>
                 {:else}
-                  <p>All basic generators unlocked! Self-Synergy can be upgraded multiple times.</p>
+                  <p>
+                    All basic generators unlocked! Self-Synergy can be upgraded
+                    multiple times.
+                  </p>
                 {/if}
               </div>
             </div>
@@ -362,7 +372,7 @@
                 Luminance Upgrades
               </h3>
               <div
-                class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:md:grid-cols-4 gap-4"
+                class="grid grid-cols-1 8xl:grid-cols-2 9xl:grid-cols-3 12xl:grid-cols-4 gap-4"
               >
                 {#each luminosityArray as upgrade}
                   <LuminosityUpgrade {upgrade} />

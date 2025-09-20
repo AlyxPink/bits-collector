@@ -1,15 +1,35 @@
 @import "tailwindcss";
 
+/*
+*/
+@theme {
+	/* @8xl 96rem(1536px) */
+	--breakpoint-8xl: 96rem;
+
+	/* @9xl 120rem(1920px) */
+	--breakpoint-9xl: 120rem;
+
+	/* @10xl 160rem(2560px) */
+	--breakpoint-10xl: 160rem;
+
+	/* @11xl 240rem(3840px) */
+	--breakpoint-11xl: 240rem;
+
+	/* @12xl 320rem(5120px) */
+	--breakpoint-12xl: 320rem;
+
+	/* @13xl 480rem(7680px) */
+	--breakpoint-13xl: 480rem;
+}
+
 @layer base {
 	body {
 		@apply bg-gray-950 text-green-400 font-mono;
-		background-image: repeating-linear-gradient(
-			0deg,
-			rgba(0, 255, 0, 0.03),
-			rgba(0, 255, 0, 0.03) 1px,
-			transparent 1px,
-			transparent 2px
-		);
+		background-image: repeating-linear-gradient(0deg,
+				rgba(0, 255, 0, 0.03),
+				rgba(0, 255, 0, 0.03) 1px,
+				transparent 1px,
+				transparent 2px);
 	}
 }
 
@@ -42,19 +62,23 @@
 		0% {
 			transform: scale(1);
 		}
+
 		50% {
 			transform: scale(1.1);
 		}
+
 		100% {
 			transform: scale(1);
 		}
 	}
 
 	@keyframes animate-pulse-glow {
+
 		0%,
 		100% {
 			box-shadow: 0 0 10px currentColor;
 		}
+
 		50% {
 			box-shadow:
 				0 0 20px currentColor,

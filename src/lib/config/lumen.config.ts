@@ -56,7 +56,7 @@ export const LUMEN_GENERATOR_CONFIG: Record<string, LumenGeneratorConfig> = {
 		baseRate: 0, // No direct generation, provides boost effect
 		baseCost: 5, // Costs 5 lumens for first level
 		costMultiplier: 2.5, // Increases by 2.5x each level
-		// No maxLevel - can be upgraded infinitely
+		maxLevel: 5,
 		unlocked: false, // Must unlock after lumenBoost
 		requiresGenerator: "lumenBoost",
 	},

@@ -13,6 +13,7 @@
     formatLux,
     WINNING_GOAL,
   } from "$lib/currency/implementations/LuxCurrency";
+  import { lumen } from "$lib/currency/implementations/LumenCurrency";
   import SettingsButton from "$lib/components/settings/SettingsButton.svelte";
 
   interface Props {
@@ -59,6 +60,19 @@
     <div class="flex justify-between items-start">
       <!-- Left: Multi-row Currency Display -->
       <div class="flex flex-col gap-1 flex-shrink-0">
+        <!-- Lumen Display -->
+        <div class="flex items-center gap-2 mb-1">
+          <div class="flex items-center gap-1">
+            <div
+              class="w-2 h-2 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full shadow-lg shadow-yellow-500/50"
+            ></div>
+            <span
+              class="font-bold text-yellow-300 text-sm min-w-[2rem] text-right"
+              >{Math.floor($lumen.total)}</span
+            >
+          </div>
+        </div>
+
         <!-- Row 1: RGB + White (always visible) -->
         <div class="flex items-center gap-3 sm:gap-4">
           <div class="flex items-center gap-1">

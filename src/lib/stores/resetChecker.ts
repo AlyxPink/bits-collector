@@ -3,7 +3,7 @@
 
 if (typeof window !== "undefined") {
 	const needsReset = localStorage.getItem("needsReset");
-	
+
 	if (needsReset === "true") {
 		console.log("🔄 Game reset initiated - clearing localStorage");
 		localStorage.clear();

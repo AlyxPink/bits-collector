@@ -404,14 +404,7 @@
       >
         <div class="text-green-400 mb-4">🔒</div>
 
-        {#if $pixels.white === 0 && !hasAnyUpgrades}
-          <!-- Initial state: no upgrades unlocked yet -->
-          <h3 class="text-xl font-bold text-green-400 mb-3">Upgrades Locked</h3>
-          <p class="text-sm opacity-75 leading-relaxed">
-            Convert your first set of RGB pixels to white pixels<br />
-            to unlock the upgrade shop!
-          </p>
-        {:else if !unlockStatus[activeTab]?.unlocked}
+        {#if !unlockStatus[activeTab]?.unlocked}
           <!-- Tab is locked -->
           {@const cost = unlockStatus[activeTab]?.cost}
           {@const canAfford = unlockStatus[activeTab]?.canAfford ?? false}

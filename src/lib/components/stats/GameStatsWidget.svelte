@@ -1,5 +1,5 @@
 <script lang="ts">
-import { pixels, conversionCost, createConversionEfficiencyStore } from "$lib/stores/pixels";
+import { pixels, conversionCost, createConversionEfficiencyStore } from "$lib/currency/implementations/PixelsCurrency";
 import { upgrades, tabUnlockStatus } from "$lib/currency/implementations/UpgradesCurrency";
 import { gameStats } from "$lib/currency/implementations/GameStatsCurrency";
 import { pureColors, pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";

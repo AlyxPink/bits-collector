@@ -132,7 +132,7 @@
 		{:else}
 			<div class="flex items-center justify-center gap-2">
 				<span>Buy for</span>
-				<span class="font-bold">💡 {formatNumber(cost)}</span>
+				<span class="font-bold">💡 {formatNumber(cost)} Lumen</span>
 			</div>
 		{/if}
 	</button>

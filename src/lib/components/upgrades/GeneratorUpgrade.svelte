@@ -4,7 +4,7 @@ import {
 	totalSpeedMultiplier,
 	type GeneratorUpgrade,
 } from "$lib/currency/implementations/UpgradesCurrency";
-import { pixels } from "$lib/stores/pixels";
+import { pixels } from "$lib/currency/implementations/PixelsCurrency";
 import { audio } from "$lib/stores/audio";
 import { upgradeColorToVariant } from "$lib/utils/colors";
 import GameCard from "$lib/components/ui/GameCard.svelte";

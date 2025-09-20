@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { lumen, lumenPerSecond, lumenEfficiency } from "$lib/currency/implementations/LumenCurrency";
-	import { pixels } from "$lib/stores/pixels";
+	import { pixels } from "$lib/currency/implementations/PixelsCurrency";
 
 	// Format numbers for display
 	function formatNumber(num: number): string {

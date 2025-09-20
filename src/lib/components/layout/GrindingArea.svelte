@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { pixels } from "$lib/stores/pixels";
+  import { pixels } from "$lib/currency/implementations/PixelsCurrency";
   import { mixedColorsUnlocked } from "$lib/currency/implementations/MixedColorsCurrency";
   import { pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";
   import PixelButton from "$lib/components/currency/pixels/PixelButton.svelte";

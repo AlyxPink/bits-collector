@@ -3,27 +3,27 @@ import type { LumenUpgradeConfig, LumenGeneratorConfig } from "./types";
 // Lumen upgrade configurations
 export const LUMEN_UPGRADE_CONFIG: Record<string, LumenUpgradeConfig> = {
 	collectorsI: {
-		baseCost: 100,
+		baseCost: 10,
 		effect: 1.5,
 		description: "Increase RGB generator rates by 50%",
 	},
 	collectorsII: {
-		baseCost: 500,
+		baseCost: 50,
 		effect: 2.0,
 		description: "Increase RGB generator rates by 100%",
 	},
 	collectorsIII: {
-		baseCost: 1000,
+		baseCost: 250,
 		effect: 2.5,
 		description: "Increase RGB generator rates by 150%",
 	},
 	convertersI: {
-		baseCost: 2500,
+		baseCost: 500,
 		effect: 0.8, // 20% cost reduction
 		description: "Reduce RGB to White conversion cost by 20%",
 	},
 	convertersII: {
-		baseCost: 5000,
+		baseCost: 1000,
 		effect: 0.6, // 40% cost reduction total
 		description: "Reduce RGB to White conversion cost by 40%",
 	},

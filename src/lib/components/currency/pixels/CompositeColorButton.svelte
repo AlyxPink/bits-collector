@@ -1,6 +1,6 @@
 <script lang="ts">
   import { compositeColors, type CompositeColor, type CompositeColorState } from "$lib/currency/implementations/CompositeColorsCurrency";
-  import { pixels } from "$lib/stores/pixels";
+  import { pixels } from "$lib/currency/implementations/PixelsCurrency";
   import { audio } from "$lib/stores/audio";
   import { upgrades } from "$lib/currency/implementations/UpgradesCurrency";
   import { formatRecipeComponents, getCompositeColorRecipe } from "$lib/utils/recipes";

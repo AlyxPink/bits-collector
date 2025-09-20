@@ -1,6 +1,6 @@
 <script lang="ts">
 import { upgrades, type BreakthroughUpgrade } from "$lib/currency/implementations/UpgradesCurrency";
-import { pixels } from "$lib/stores/pixels";
+import { pixels } from "$lib/currency/implementations/PixelsCurrency";
 import { audio } from "$lib/stores/audio";
 import GameCard from "$lib/components/ui/GameCard.svelte";
 import GameButton from "$lib/components/ui/GameButton.svelte";

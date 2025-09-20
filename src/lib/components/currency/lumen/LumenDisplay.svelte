@@ -39,7 +39,7 @@
 <div class="lumen-display {brightnessClass}" style="--glow-intensity: {glowIntensity}">
 	<div class="lumen-icon">💡</div>
 	<div class="lumen-content">
-		<div class="lumen-title">Total Lumen</div>
+		<div class="lumen-title">💡 Lumen</div>
 		<div class="lumen-amount">{formatNumber($lumen.total)}</div>
 		<div class="lumen-subtitle">Brightness Level</div>
 	</div>

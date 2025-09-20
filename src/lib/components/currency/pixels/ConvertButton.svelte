@@ -1,5 +1,5 @@
 <script lang="ts">
-import { pixels, canConvert, conversionCost, createConversionEfficiencyStore } from "$lib/stores/pixels";
+import { pixels, canConvert, conversionCost, createConversionEfficiencyStore } from "$lib/currency/implementations/PixelsCurrency";
 import { gameStats } from "$lib/currency/implementations/GameStatsCurrency";
 import { audio } from "$lib/stores/audio";
 import { inputController } from "$lib/stores/inputController";

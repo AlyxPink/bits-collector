@@ -8,7 +8,7 @@
 import { writable, derived, get } from "svelte/store";
 import { CurrencyBase } from "../core/CurrencyBase";
 import type { ICurrency, CurrencyConfig } from "../core/interfaces";
-import { pixels } from "$lib/stores/pixels";
+import { pixels } from "$lib/currency/implementations/PixelsCurrency";
 
 // ============================================================================
 // Core Types

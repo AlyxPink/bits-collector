@@ -63,3 +63,45 @@ export const CONVERSION_CONSTANTS = {
 	bulkConversionMax: 5,        // Max sets to convert at once
 	bonusChance: 0.25,          // White pixel amplifier chance
 };
+
+// Performance Mode Configuration
+export const PERFORMANCE_MODE = {
+	// Production rate thresholds (bits/sec) for adaptive tick rates
+	productionThresholds: {
+		normal: 100000,      // Below 100K bits/sec - normal 100ms ticks
+		medium: 500000,      // 100K-500K bits/sec - 200ms ticks (5 TPS)
+		high: 1000000,       // 500K-1M bits/sec - 500ms ticks (2 TPS)
+		extreme: 5000000,    // Above 5M bits/sec - 1000ms ticks (1 TPS)
+	},
+
+	// Tick intervals (ms) for each performance mode
+	tickIntervals: {
+		normal: 100,    // 10 TPS
+		medium: 200,    // 5 TPS
+		high: 500,      // 2 TPS
+		extreme: 1000,  // 1 TPS
+	},
+
+	// Emergency mode activation
+	emergency: {
+		fpsThreshold: 15,           // Activate when FPS drops below this
+		activationDelay: 2000,      // Wait 2 seconds before activating
+		extremeTickInterval: 2000,  // 0.5 TPS in emergency mode
+	},
+
+	// localStorage save throttling
+	saveThrottle: {
+		normalInterval: 0,      // Save immediately in normal mode
+		mediumInterval: 500,    // Save every 500ms in medium mode
+		highInterval: 1000,     // Save every 1s in high mode
+		extremeInterval: 2000,  // Save every 2s in extreme mode
+	},
+
+	// UI update throttling
+	uiUpdateThrottle: {
+		normalInterval: 50,     // Update UI every 50ms (20 FPS) in normal
+		mediumInterval: 100,    // Update UI every 100ms (10 FPS) in medium
+		highInterval: 200,      // Update UI every 200ms (5 FPS) in high
+		extremeInterval: 500,   // Update UI every 500ms (2 FPS) in extreme
+	},
+};

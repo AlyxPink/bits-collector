@@ -304,10 +304,15 @@ function getTotalTheoreticalProduction(
 ): number {
 	let total = 0;
 
-	// Calculate total multiplier from powerups
+	// Calculate total multiplier from powerups using NEW ADDITIVE-PER-TIER system
+	// Each powerup tier adds bonus multiplicatively: (1 + bonus1) × (1 + bonus2) × (1 + bonus3)
+	// This prevents exponential explosion while keeping progression rewarding
 	const totalMultiplier = Object.values(powerups).reduce((mult, powerup) => {
 		if (powerup.level > 0) {
-			return mult * Math.pow(powerup.multiplier, powerup.level);
+			// Additive within tier: 1 + (multiplier - 1) * level
+			// Example: multiplier=2, level=5 → 1 + (1 * 5) = 6x for this tier
+			const tierBonus = (powerup.multiplier - 1) * powerup.level;
+			return mult * (1 + tierBonus);
 		}
 		return mult;
 	}, 1);
@@ -415,6 +420,42 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 				localStorage.setItem("upgrades", JSON.stringify(value));
 			}
 		});
+
+		// Clear caches on store updates to prevent stale data
+		this.subscribe(() => {
+			this.clearCaches();
+		});
+	}
+
+	// Clear all memoization caches
+	private clearCaches(): void {
+		this.boostDetailsCache.clear();
+		this.effectiveRateCache.clear();
+		this.powerupMultiplierCache = null;
+	}
+
+	// Memoized powerup multiplier calculation using NEW ADDITIVE-PER-TIER system
+	private getTotalPowerupMultiplier(): number {
+		const now = Date.now();
+		if (this.powerupMultiplierCache && (now - this.powerupMultiplierCache.timestamp) < this.cacheTTL) {
+			return this.powerupMultiplierCache.value;
+		}
+
+		const state = get(this.store);
+		const multiplier = Object.values(state.powerups).reduce(
+			(mult, powerup) => {
+				if (powerup.level > 0) {
+					// Additive within tier: 1 + (multiplier - 1) * level
+					const tierBonus = (powerup.multiplier - 1) * powerup.level;
+					return mult * (1 + tierBonus);
+				}
+				return mult;
+			},
+			1,
+		);
+
+		this.powerupMultiplierCache = { value: multiplier, timestamp: now };
+		return multiplier;
 	}
 
 	// ICurrency interface implementation
@@ -527,7 +568,9 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 
 		Object.values(state.powerups).forEach((powerup) => {
 			if (powerup.level > 0) {
-				multiplier *= Math.pow(powerup.multiplier, powerup.level);
+				// Additive within tier: 1 + (multiplier - 1) * level
+				const tierBonus = (powerup.multiplier - 1) * powerup.level;
+				multiplier *= (1 + tierBonus);
 			}
 		});
 
@@ -788,20 +831,51 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 
 		this.update((state) => {
 			// Use provided deltaTime or calculate from lastAutoTick for backward compatibility
-			const deltaTime = deltaTimeSeconds ?? (now - state.lastAutoTick) / 1000;
-			const isFastCatchup = deltaTime > 300; // 5 minutes threshold
+			let deltaTime = deltaTimeSeconds ?? (now - state.lastAutoTick) / 1000;
 
-			// Calculate soft cap adjusted rates
+			// CRITICAL PERFORMANCE FIX: Skip first tick if it's been too long
+			// On page load with high production, calculating hours of offline progress
+			// can freeze the browser for minutes. Skip it and just update the timestamp.
+			if (deltaTime > 60) { // More than 1 minute means page just loaded
+				console.log(`⚡ FAST SKIP: Skipping ${(deltaTime / 60).toFixed(1)} minutes of offline catchup on first tick (would freeze browser)`);
+				return {
+					...state,
+					lastAutoTick: now,
+				};
+			}
+
+			const isFastCatchup = deltaTime > 5; // 5 seconds threshold for bulk processing
+
+			// Calculate current production to check if we should limit catchup
 			const totalTheoretical = getTotalTheoreticalProduction(
 				state.generators,
 				state.powerups,
 			);
+
+			// Safety limit: If production is extreme (>1M bits/sec) and offline time is long,
+			// cap the catchup to prevent initial freeze. This prevents processing billions of bits at once.
+			const isExtremeProduction = totalTheoretical >= 1000000; // 1M+ bits/sec
+			const maxCatchupTime = isExtremeProduction ? 10 : 3600; // 10 seconds for extreme, 1 hour for normal
+
+			if (deltaTime > maxCatchupTime) {
+				console.log(`⚠️ Offline catchup limited: ${(deltaTime).toFixed(1)}s → ${maxCatchupTime}s (${totalTheoretical.toFixed(0)} bits/sec production)`);
+				deltaTime = maxCatchupTime;
+			}
+
+			// Calculate soft cap adjusted rates (already calculated above)
 			const totalEffective = applySmoothScaling(
 				totalTheoretical,
 				state.breakthroughs,
 			);
 			const efficiencyRatio =
 				totalTheoretical > 0 ? totalEffective / totalTheoretical : 1;
+
+			// Update game loop with current production rate (for adaptive tick rate)
+			if (typeof window !== "undefined" && !isFastCatchup) {
+				import("../../stores/gameLoop").then(({ gameLoop }) => {
+					gameLoop.updateProductionRate(totalEffective);
+				});
+			}
 
 			// Fast catchup mode: bulk calculation for offline progress
 			if (isFastCatchup) {
@@ -813,7 +887,9 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 						const multiplier = Object.values(state.powerups).reduce(
 							(mult, powerup) => {
 								if (powerup.level > 0) {
-									return mult * Math.pow(powerup.multiplier, powerup.level);
+									// Additive within tier: 1 + (multiplier - 1) * level
+									const tierBonus = (powerup.multiplier - 1) * powerup.level;
+									return mult * (1 + tierBonus);
 								}
 								return mult;
 							},
@@ -954,7 +1030,9 @@ export const totalSpeedMultiplier = derived(upgrades, ($upgrades) => {
 	let multiplier = 1;
 	Object.values($upgrades.powerups).forEach((powerup) => {
 		if (powerup.level > 0) {
-			multiplier *= Math.pow(powerup.multiplier, powerup.level);
+			// Additive within tier: 1 + (multiplier - 1) * level
+			const tierBonus = (powerup.multiplier - 1) * powerup.level;
+			multiplier *= (1 + tierBonus);
 		}
 	});
 	return multiplier;
@@ -1017,13 +1095,19 @@ export const isTabUnlocked = derived(
 	($status) => (tabId: string) => $status[tabId]?.unlocked ?? false,
 );
 
-// Register with the unified game loop
+// Register with the unified game loop (must be after upgrades instance is created)
+// Using setTimeout to ensure this runs after the module is fully loaded
 if (typeof window !== "undefined") {
-	import("../../stores/gameLoop").then(({ gameLoop }) => {
+	// Defer registration to next tick to ensure all modules are initialized
+	setTimeout(async () => {
+		const { gameLoop } = await import("../../stores/gameLoop");
 		gameLoop.register({
 			tick: (deltaTime: number) => upgrades.processAutoTick(deltaTime)
 		});
-		// Start the game loop if not already started
-		gameLoop.start();
-	});
+
+		// Wait a bit more to ensure other systems (Lumen, AutoConverters) have registered
+		setTimeout(() => {
+			gameLoop.start();
+		}, 100);
+	}, 0);
 }

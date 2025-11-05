@@ -7,6 +7,7 @@
 
 import { writable, derived, get, type Writable } from "svelte/store";
 import type { ICurrency, CurrencyConfig, CurrencyType } from "./interfaces";
+import { PERFORMANCE_MODE } from "$lib/config/gameConfig";
 
 export interface MultiCurrencyConfig<T> extends CurrencyConfig<T> {
 	// Optional conversion mechanics
@@ -28,33 +29,80 @@ export abstract class MultiCurrencyBase<T> implements ICurrency {
 	private saveTimeout: ReturnType<typeof setTimeout> | null = null;
 	private pendingState: T | null = null;
 
+	// Throttled save state
+	private pendingSave: T | null = null;
+	private saveTimeoutId: ReturnType<typeof setTimeout> | null = null;
+	private lastSaveTime = 0;
+
 	constructor(config: MultiCurrencyConfig<T>) {
 		this.config = config;
 		this.store = writable<T>(this.loadState());
 		this.subscribe = this.store.subscribe;
 
-		// Auto-save on changes if persistence enabled (debounced for performance)
+		// Auto-save on changes if persistence enabled (with throttling)
 		if (config.persistence) {
 			this.store.subscribe((value) => {
 				if (typeof window !== "undefined") {
-					// Store the latest state
-					this.pendingState = value;
-
-					// Clear existing timeout
-					if (this.saveTimeout) {
-						clearTimeout(this.saveTimeout);
-					}
-
-					// Debounce save for 500ms (balance between performance and data safety)
-					this.saveTimeout = setTimeout(() => {
-						if (this.pendingState) {
-							localStorage.setItem(config.storageKey, JSON.stringify(this.pendingState));
-							this.pendingState = null;
-						}
-						this.saveTimeout = null;
-					}, 500);
+					this.scheduleSave(value);
 				}
 			});
+		}
+	}
+
+	// Throttled save with adaptive intervals based on performance mode
+	private scheduleSave(value: T): void {
+		this.pendingSave = value;
+
+		// Get current performance mode from game loop if available
+		const getCurrentPerformanceMode = (): "normal" | "medium" | "high" | "extreme" | "emergency" => {
+			try {
+				// Dynamically import to avoid circular dependencies
+				const gameLoopModule = (window as any).__gameLoopState;
+				if (gameLoopModule?.performanceMode) {
+					return gameLoopModule.performanceMode;
+				}
+			} catch {
+				// If game loop not available, fall back to checking production rate
+			}
+			return "normal";
+		};
+
+		const mode = getCurrentPerformanceMode();
+
+		// Map performance mode to save throttle key
+		const throttleKey = mode === "emergency" ? "extremeInterval" :
+		                     mode === "extreme" ? "extremeInterval" :
+		                     mode === "high" ? "highInterval" :
+		                     mode === "medium" ? "mediumInterval" :
+		                     "normalInterval";
+
+		const throttleInterval = PERFORMANCE_MODE.saveThrottle[throttleKey];
+
+		// If no throttling (normal mode) or enough time has passed, save immediately
+		const now = Date.now();
+		if (throttleInterval === 0 || (now - this.lastSaveTime) >= throttleInterval) {
+			this.executeSave();
+			return;
+		}
+
+		// Otherwise, schedule a throttled save
+		if (this.saveTimeoutId === null) {
+			const delay = throttleInterval - (now - this.lastSaveTime);
+			this.saveTimeoutId = setTimeout(() => {
+				this.executeSave();
+			}, Math.max(0, delay));
+		}
+	}
+
+	private executeSave(): void {
+		if (this.pendingSave !== null) {
+			localStorage.setItem(this.config.storageKey, JSON.stringify(this.pendingSave));
+			this.pendingSave = null;
+			this.lastSaveTime = Date.now();
+		}
+		if (this.saveTimeoutId !== null) {
+			clearTimeout(this.saveTimeoutId);
+			this.saveTimeoutId = null;
 		}
 	}
 

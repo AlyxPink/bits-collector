@@ -548,9 +548,10 @@ export const autoConvertersUnlocked = derived(
 
 // Register with the unified game loop
 if (typeof window !== "undefined") {
-	import("../../stores/gameLoop").then(({ gameLoop }) => {
+	setTimeout(async () => {
+		const { gameLoop } = await import("../../stores/gameLoop");
 		gameLoop.register({
 			tick: (deltaTime: number) => autoConverters.tick(deltaTime)
 		});
-	});
+	}, 0);
 }

@@ -25,24 +25,27 @@ export const GENERATOR_CONFIG: Record<string, GeneratorConfig> = {
 };
 
 // Powerup configurations
+// NEW ADDITIVE SYSTEM: Each powerup adds to total multiplier instead of multiplying
+// Formula: totalMultiplier = (1 + speedBoostBonus) × (1 + megaSpeedBonus) × (1 + ultraSpeedBonus)
+// This prevents exponential growth while keeping progression satisfying
 export const POWERUP_CONFIG: Record<string, PowerupConfig> = {
 	speedBoost: {
-		multiplier: 2,
+		multiplier: 2, // Adds +100% per level (+1.0x in additive formula)
 		baseCost: 50,
-		costMultiplier: 3,
-		maxLevel: 5,
+		costMultiplier: 4, // Increased from 3 to slow progression
+		maxLevel: 5, // 5 levels = +500% = 6x total
 	},
 	megaSpeed: {
-		multiplier: 5,
-		baseCost: 200,
-		costMultiplier: 4,
-		maxLevel: 3,
+		multiplier: 3, // Adds +200% per level (+2.0x in additive formula)
+		baseCost: 500, // Increased from 200
+		costMultiplier: 5, // Increased from 4
+		maxLevel: 3, // 3 levels = +600% = 7x total
 	},
 	ultraSpeed: {
-		multiplier: 10,
-		baseCost: 1000,
-		costMultiplier: 5,
-		maxLevel: 2,
+		multiplier: 4, // Adds +300% per level (+3.0x in additive formula)
+		baseCost: 5000, // Increased from 1000
+		costMultiplier: 6, // Increased from 5
+		maxLevel: 2, // 2 levels = +600% = 7x total
 	},
 };
 

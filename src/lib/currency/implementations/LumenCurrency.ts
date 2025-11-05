@@ -574,9 +574,10 @@ export { createLumenCurrency };
 
 // Register with the unified game loop
 if (typeof window !== "undefined") {
-	import("../../stores/gameLoop").then(({ gameLoop }) => {
+	setTimeout(async () => {
+		const { gameLoop } = await import("../../stores/gameLoop");
 		gameLoop.register({
 			tick: (deltaTime: number) => lumen.processGenerationTick(deltaTime)
 		});
-	});
+	}, 0);
 }

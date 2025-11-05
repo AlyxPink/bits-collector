@@ -1,7 +1,6 @@
 <script lang="ts">
   import { pixels } from "$lib/currency/implementations/PixelsCurrency";
-  import { mixedColorsUnlocked } from "$lib/currency/implementations/MixedColorsCurrency";
-  import { pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";
+  import { compositeColorsUnlocked } from "$lib/currency/implementations/CompositeColorsCurrency";
   import PixelButton from "$lib/components/currency/pixels/PixelButton.svelte";
   import ConvertButton from "$lib/components/currency/pixels/ConvertButton.svelte";
   import WhitePixelDisplay from "$lib/components/currency/pixels/WhitePixelDisplay.svelte";
@@ -29,14 +28,14 @@
       id: "mixed" as const,
       label: "Mixed",
       iconType: "gradient" as const,
-      unlocked: $mixedColorsUnlocked,
+      unlocked: $pixels.lifetimeWhite >= 25,
       requirement: 25,
     },
     {
       id: "pure" as const,
       label: "Pure",
       iconType: "diamond" as const,
-      unlocked: $pureColorsUnlocked,
+      unlocked: $pixels.lifetimeWhite >= 50,
       requirement: 50,
     },
   ]);
@@ -153,7 +152,7 @@
           </p>
           <p>Click RGB buttons to collect colored pixels</p>
           <p>Convert sets of R+G+B into WHITE pixels</p>
-          {#if !$mixedColorsUnlocked}
+          {#if $pixels.lifetimeWhite < 25}
             <p class="text-yellow-400 mt-2">
               Get 25 lifetime ⚪ to unlock Mixed Colors!
             </p>

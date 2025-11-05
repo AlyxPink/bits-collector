@@ -1,13 +1,16 @@
 <script lang="ts">
-  import { mixedColors } from "$lib/currency/implementations/MixedColorsCurrency";
-  import { pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";
+  import { compositeColors } from "$lib/currency/implementations/CompositeColorsCurrency";
+  import { pixels } from "$lib/currency/implementations/PixelsCurrency";
   import { formatRecipeComponents } from "$lib/utils/recipes";
   import ColorButton from "$lib/components/currency/pixels/ColorButton.svelte";
 
-  let mixedColorsList = $derived(mixedColors.getMixedColors());
-  let unlockedCount = $derived(mixedColors.getUnlockedCount());
+  // Subscribe to the store to get reactive updates
+  let mixedColorsList = $derived(
+    Object.values($compositeColors).filter(c => c.type === "mixed")
+  );
+  let unlockedCount = $derived(mixedColorsList.filter(c => c.unlocked).length);
   let totalMixedColors = 6;
-  let nextToUnlock = $derived(mixedColors.getNextToUnlock());
+  let nextToUnlock = $derived(mixedColorsList.find(c => !c.unlocked) ?? null);
 </script>
 
 <div class="h-full flex flex-col justify-center items-center gap-8">
@@ -27,7 +30,7 @@
   <!-- Mixed colors grid -->
   <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl">
     {#each mixedColorsList as color}
-      <ColorButton {color} store={mixedColors} />
+      <ColorButton {color} store={compositeColors} />
     {/each}
   </div>
 
@@ -47,7 +50,7 @@
       </div>
     {/if}
     
-    {#if !$pureColorsUnlocked}
+    {#if $pixels.lifetimeWhite < 50}
       <p class="text-yellow-400 mt-3">
         Get 50 lifetime ⚪ to unlock Pure Colors!
       </p>

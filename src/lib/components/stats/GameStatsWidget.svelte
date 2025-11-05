@@ -2,7 +2,7 @@
 import { pixels, conversionCost, createConversionEfficiencyStore } from "$lib/currency/implementations/PixelsCurrency";
 import { upgrades, tabUnlockStatus } from "$lib/currency/implementations/UpgradesCurrency";
 import { gameStats } from "$lib/currency/implementations/GameStatsCurrency";
-import { pureColors, pureColorsUnlocked } from "$lib/currency/implementations/PureColorsCurrency";
+import { compositeColors } from "$lib/currency/implementations/CompositeColorsCurrency";
 
 // Create efficiency store
 const conversionEfficiency = createConversionEfficiencyStore(gameStats);
@@ -46,12 +46,12 @@ let showAdvanced = $state(false);
 let recentUnlock = $state<string | null>(null);
 
 // Pure colors and Spectrum Synergy information
-const unlockedPureColors = $derived(pureColors.getUnlockedColors());
-const crimsonCount = $derived(pureColors.getPureColorCount("red"));
-const emeraldCount = $derived(pureColors.getPureColorCount("green"));
-const sapphireCount = $derived(pureColors.getPureColorCount("blue"));
-const hasSpectrumSynergy = $derived(pureColors.hasAllPureColors());
-const randomGeneratorMultiplier = $derived(pureColors.getRandomGeneratorMultiplier());
+const unlockedPureColors = $derived(compositeColors.getPureColors().filter(c => c.unlocked));
+const crimsonCount = $derived(compositeColors.getPureColorCount("red"));
+const emeraldCount = $derived(compositeColors.getPureColorCount("green"));
+const sapphireCount = $derived(compositeColors.getPureColorCount("blue"));
+const hasSpectrumSynergy = $derived(compositeColors.hasAllPureColors());
+const randomGeneratorMultiplier = $derived(compositeColors.getRandomGeneratorMultiplier());
 
 // Calculate balance ratio for pure colors
 const maxPureCount = $derived(Math.max(crimsonCount, emeraldCount, sapphireCount));
@@ -189,7 +189,7 @@ $effect(() => {
 	</div>
 	
 	<!-- Pure Colors & Spectrum Synergy (only if unlocked) -->
-	{#if $pureColorsUnlocked}
+	{#if $pixels.lifetimeWhite >= 50}
 		<div class="border-b border-purple-500/20 pb-2">
 			<div class="text-purple-400 font-bold mb-1.5 flex items-center gap-1">
 				🌈 Pure Colors

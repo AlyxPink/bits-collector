@@ -1,6 +1,8 @@
 <script lang="ts">
   import { audio } from "$lib/stores/audio";
   import { upgrades } from "$lib/currency/implementations/UpgradesCurrency";
+  import { pixels } from "$lib/currency/implementations/PixelsCurrency";
+  import { compositeColors } from "$lib/currency/implementations/CompositeColorsCurrency";
   import { formatRecipeComponents } from "$lib/utils/recipes";
   import type { MixedColor } from "$lib/currency/implementations/MixedColorsCurrency";
   import type { PureColor } from "$lib/currency/implementations/PureColorsCurrency";
@@ -27,17 +29,70 @@
   let { color, store }: Props = $props();
 
   let isMixing = $state(false);
-  let canAfford = $derived(store.canAfford(color.id));
-  let canAffordUnlock = $derived(store.canAffordUnlock(color.id));
-  let unlockCost = $derived(store.getUnlockCost(color.id));
+
+  // Get the current color state from the store (reactive)
+  let currentColor = $derived($compositeColors[color.id as keyof typeof $compositeColors] || color);
+
+  // Subscribe to stores for reactivity
+  let canAfford = $derived(
+    $pixels.red >= currentColor.recipe.red &&
+    $pixels.green >= currentColor.recipe.green &&
+    $pixels.blue >= currentColor.recipe.blue &&
+    currentColor.unlocked
+  );
+
+  let canAffordUnlock = $derived((() => {
+    if (currentColor.unlocked) return false;
+    const allColors = Object.values($compositeColors);
+    const unlockedCount = allColors.filter(c => c.unlocked).length;
+    const cost = calculateUnlockCost(unlockedCount, currentColor.id);
+    return $pixels.red >= cost.red &&
+           $pixels.green >= cost.green &&
+           $pixels.blue >= cost.blue;
+  })());
+
+  let unlockCost = $derived((() => {
+    const allColors = Object.values($compositeColors);
+    const unlockedCount = allColors.filter(c => c.unlocked).length;
+    return calculateUnlockCost(unlockedCount, currentColor.id);
+  })());
+
+  // Helper to calculate unlock cost (mirrors the logic from config)
+  function calculateUnlockCost(unlockedCount: number, colorId: string) {
+    // Import the config calculation functions
+    const isPure = currentColor.type === "pure";
+
+    if (isPure) {
+      // Pure colors have higher unlock costs
+      const colorMap: Record<string, { red: number; green: number; blue: number }> = {
+        crimson: { red: 100, green: 0, blue: 0 },
+        emerald: { red: 0, green: 100, blue: 0 },
+        sapphire: { red: 0, green: 0, blue: 100 }
+      };
+      const baseCost = colorMap[colorId] || { red: 100, green: 100, blue: 100 };
+      const total = baseCost.red + baseCost.green + baseCost.blue;
+      return { ...baseCost, total };
+    } else {
+      // Mixed colors use progressive cost
+      const baseCost = 10;
+      const costMultiplier = 2;
+      const cost = Math.floor(baseCost * Math.pow(costMultiplier, unlockedCount));
+      return {
+        red: cost,
+        green: cost,
+        blue: cost,
+        total: cost * 3
+      };
+    }
+  }
 
   // Check if this is a pure color and get boost info
   let boostInfo = $derived(() => {
     // Only pure colors have boost functionality
     if (
-      color.id !== "crimson" &&
-      color.id !== "emerald" &&
-      color.id !== "sapphire"
+      currentColor.id !== "crimson" &&
+      currentColor.id !== "emerald" &&
+      currentColor.id !== "sapphire"
     ) {
       return null;
     }
@@ -47,7 +102,7 @@
       emerald: "green",
       sapphire: "blue",
     } as const;
-    const generatorColor = colorMap[color.id as keyof typeof colorMap];
+    const generatorColor = colorMap[currentColor.id as keyof typeof colorMap];
     if (!generatorColor) return null;
 
     const details = upgrades.getPureColorBoostDetails(generatorColor);
@@ -56,34 +111,34 @@
 
   // Build recipe display string - using utility function
   function getRecipeDisplay() {
-    return formatRecipeComponents(color.recipe);
+    return formatRecipeComponents(currentColor.recipe);
   }
 
   // Build enhanced tooltip with unlock/boost information
   function getTooltipText() {
-    if (!color.unlocked) {
+    if (!currentColor.unlocked) {
       const cost = unlockCost;
       let tooltip = `🔒 LOCKED - Unlock Cost:`;
       tooltip += `\n  ${cost.red} Red + ${cost.green} Green + ${cost.blue} Blue`;
       tooltip += `\n  Total: ${cost.total} RGB pixels`;
-      tooltip += `\n\nAfter unlock: ${getRecipeDisplay()} → ${color.name}`;
+      tooltip += `\n\nAfter unlock: ${getRecipeDisplay()} → ${currentColor.name}`;
       return tooltip;
     }
 
-    let tooltip = `${getRecipeDisplay()} → ${color.name}`;
+    let tooltip = `${getRecipeDisplay()} → ${currentColor.name}`;
 
     const info = boostInfo();
     if (info) {
       const generatorName =
-        color.id === "crimson"
+        currentColor.id === "crimson"
           ? "Red"
-          : color.id === "emerald"
+          : currentColor.id === "emerald"
             ? "Green"
             : "Blue";
 
       tooltip += `\n\n🚀 Generator Boost:`;
       if (info.pureCount === 0) {
-        tooltip += `\n  First ${color.name} will boost ${generatorName} Generator`;
+        tooltip += `\n  First ${currentColor.name} will boost ${generatorName} Generator`;
       } else {
         const currentMult = info.currentMultiplier;
         const nextMult = info.nextMultiplier;
@@ -105,7 +160,7 @@
 
   // Build button classes in the style of RGB buttons
   function getButtonClasses() {
-    if (!color.unlocked) {
+    if (!currentColor.unlocked) {
       // Locked state - darker and different styling
       const canUnlock = canAffordUnlock;
       return `pixel-button border-gray-600 text-gray-400 bg-gray-800/20 hover:bg-gray-700/30 shadow-lg shadow-gray-600/30 ${canUnlock ? "cursor-pointer transform hover:scale-105" : "cursor-not-allowed opacity-50"}`;
@@ -113,11 +168,11 @@
 
     // Unlocked state - normal styling
     const canMix = canAfford;
-    return `pixel-button ${color.borderColor} ${color.textColor} ${color.bgColor} ${color.hoverBgColor} shadow-lg ${color.shadowColor} ${canMix ? "cursor-pointer transform hover:scale-105" : "cursor-not-allowed opacity-60"}`;
+    return `pixel-button ${currentColor.borderColor} ${currentColor.textColor} ${currentColor.bgColor} ${currentColor.hoverBgColor} shadow-lg ${currentColor.shadowColor} ${canMix ? "cursor-pointer transform hover:scale-105" : "cursor-not-allowed opacity-60"}`;
   }
 
   function handleClick() {
-    if (!color.unlocked) {
+    if (!currentColor.unlocked) {
       // Try to unlock
       if (canAffordUnlock) {
         const success = store.unlockColor(color.id);
@@ -151,18 +206,18 @@
 
 <button
   onclick={handleClick}
-  disabled={color.unlocked ? !canAfford : !canAffordUnlock}
+  disabled={currentColor.unlocked ? !canAfford : !canAffordUnlock}
   class="{getButtonClasses()} {isMixing ? 'animate-pixel-pop' : ''}"
   title={getTooltipText()}
   tabindex="0"
 >
   <div class="flex flex-col items-center gap-2">
-    {#if !color.unlocked}
+    {#if !currentColor.unlocked}
       <!-- Locked state -->
       <div
         class="text-xl font-bold uppercase tracking-widest text-gray-400 flex items-center gap-2"
       >
-        🔒 {color.name}
+        🔒 {currentColor.name}
       </div>
 
       <!-- Unlock cost -->
@@ -193,39 +248,39 @@
     {:else}
       <!-- Unlocked state - original content -->
       <div class="text-2xl font-bold uppercase tracking-widest glow-text">
-        {color.name}
+        {currentColor.name}
       </div>
 
       <!-- Count -->
       <div class="text-4xl font-bold tabular-nums">
-        {color.count}
+        {currentColor.count}
       </div>
 
       <!-- Recipe hint with CSS circles -->
       <div
         class="text-xs text-center leading-tight flex items-center gap-1 opacity-75"
       >
-        {#if color.recipe.red > 0}
+        {#if currentColor.recipe.red > 0}
           <span class="flex items-center gap-0.5">
-            <span>{color.recipe.red}×</span>
+            <span>{currentColor.recipe.red}×</span>
             <div class="w-2 h-2 bg-red-500 rounded-full"></div>
           </span>
         {/if}
-        {#if color.recipe.red > 0 && (color.recipe.green > 0 || color.recipe.blue > 0)}
+        {#if currentColor.recipe.red > 0 && (currentColor.recipe.green > 0 || currentColor.recipe.blue > 0)}
           <span class="text-white/60">+</span>
         {/if}
-        {#if color.recipe.green > 0}
+        {#if currentColor.recipe.green > 0}
           <span class="flex items-center gap-0.5">
-            <span>{color.recipe.green}×</span>
+            <span>{currentColor.recipe.green}×</span>
             <div class="w-2 h-2 bg-green-500 rounded-full"></div>
           </span>
         {/if}
-        {#if color.recipe.green > 0 && color.recipe.blue > 0}
+        {#if currentColor.recipe.green > 0 && currentColor.recipe.blue > 0}
           <span class="text-white/60">+</span>
         {/if}
-        {#if color.recipe.blue > 0}
+        {#if currentColor.recipe.blue > 0}
           <span class="flex items-center gap-0.5">
-            <span>{color.recipe.blue}×</span>
+            <span>{currentColor.recipe.blue}×</span>
             <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
           </span>
         {/if}

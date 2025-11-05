@@ -249,6 +249,116 @@ function createCompositeColorsCurrency() {
 				return state;
 			});
 		},
+
+		// Pure color methods (needed by UpgradesCurrency)
+		getPureColorCount: (color: "red" | "green" | "blue"): number => {
+			const colors = store.getColors();
+			switch (color) {
+				case "red":
+					const crimson = colors.find(c => c.id === "crimson");
+					return crimson?.unlocked ? crimson.count : 0;
+				case "green":
+					const emerald = colors.find(c => c.id === "emerald");
+					return emerald?.unlocked ? emerald.count : 0;
+				case "blue":
+					const sapphire = colors.find(c => c.id === "sapphire");
+					return sapphire?.unlocked ? sapphire.count : 0;
+				default:
+					return 0;
+			}
+		},
+
+		hasAllPureColors: (): boolean => {
+			const colors = store.getColors();
+			const crimson = colors.find(c => c.id === "crimson");
+			const emerald = colors.find(c => c.id === "emerald");
+			const sapphire = colors.find(c => c.id === "sapphire");
+			return !!(crimson?.unlocked && crimson.count > 0 &&
+					 emerald?.unlocked && emerald.count > 0 &&
+					 sapphire?.unlocked && sapphire.count > 0);
+		},
+
+		getPureColorMultiplier: (color: "red" | "green" | "blue"): number => {
+			const colors = store.getColors();
+			let pureCount = 0;
+			switch (color) {
+				case "red":
+					const crimson = colors.find(c => c.id === "crimson");
+					pureCount = crimson?.unlocked ? crimson.count : 0;
+					break;
+				case "green":
+					const emerald = colors.find(c => c.id === "emerald");
+					pureCount = emerald?.unlocked ? emerald.count : 0;
+					break;
+				case "blue":
+					const sapphire = colors.find(c => c.id === "sapphire");
+					pureCount = sapphire?.unlocked ? sapphire.count : 0;
+					break;
+			}
+
+			if (pureCount === 0) return 1;
+
+			// Import config for pure color boost calculations
+			const { PURE_COLOR_BOOST, PURE_COLOR_MILESTONES } = require("$lib/config/gameConfig");
+
+			// Layer 1: Base logarithmic growth
+			const baseBoost = Math.pow(pureCount, PURE_COLOR_BOOST.baseBoostPower) * PURE_COLOR_BOOST.baseBoostMultiplier;
+
+			// Layer 2: Milestone bonuses
+			const milestones = PURE_COLOR_MILESTONES;
+			const milestoneBonus = milestones.filter((m: number) => pureCount >= m).length * PURE_COLOR_BOOST.milestoneBonus;
+
+			// Layer 3: Diminishing returns after certain thresholds
+			let effectiveCount = pureCount;
+			if (pureCount > 100) effectiveCount = 100 + Math.pow(pureCount - 100, PURE_COLOR_BOOST.effectiveCountPowers.above100);
+			if (pureCount > 500) effectiveCount = 400 + Math.pow(pureCount - 500, PURE_COLOR_BOOST.effectiveCountPowers.above500);
+
+			// Layer 4: Synergy bonus
+			const hasAllPure = compositeColors.hasAllPureColors();
+			const synergyBonus = hasAllPure ? Math.log10(pureCount + 1) * PURE_COLOR_BOOST.synergyMultiplier : 0;
+
+			const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * PURE_COLOR_BOOST.effectiveCountMultiplier) + synergyBonus;
+
+			// Apply smooth soft cap
+			if (rawMultiplier > PURE_COLOR_BOOST.softCaps.third) return PURE_COLOR_BOOST.softCaps.thirdBase + Math.pow(rawMultiplier - PURE_COLOR_BOOST.softCaps.third, PURE_COLOR_BOOST.softCaps.thirdPower);
+			if (rawMultiplier > PURE_COLOR_BOOST.softCaps.second) return PURE_COLOR_BOOST.softCaps.secondBase + Math.pow(rawMultiplier - PURE_COLOR_BOOST.softCaps.second, PURE_COLOR_BOOST.softCaps.secondPower);
+			if (rawMultiplier > PURE_COLOR_BOOST.softCaps.first) return PURE_COLOR_BOOST.softCaps.first + Math.pow(rawMultiplier - PURE_COLOR_BOOST.softCaps.first, PURE_COLOR_BOOST.softCaps.firstPower);
+
+			return rawMultiplier;
+		},
+
+		getRandomGeneratorMultiplier: (): number => {
+			const colors = store.getColors();
+
+			const crimson = colors.find(c => c.id === "crimson");
+			const emerald = colors.find(c => c.id === "emerald");
+			const sapphire = colors.find(c => c.id === "sapphire");
+
+			const redCount = crimson?.unlocked ? crimson.count : 0;
+			const greenCount = emerald?.unlocked ? emerald.count : 0;
+			const blueCount = sapphire?.unlocked ? sapphire.count : 0;
+
+			const totalCount = redCount + greenCount + blueCount;
+			const avgCount = totalCount / 3;
+
+			if (totalCount === 0) return 1;
+
+			// Import config for calculations
+			const { PURE_COLOR_BOOST } = require("$lib/config/gameConfig");
+
+			// Balanced bonus
+			const balance = Math.min(redCount, greenCount, blueCount) / Math.max(redCount, greenCount, blueCount, 1);
+			const balanceBonus = balance * PURE_COLOR_BOOST.randomGenerator.balanceBonus;
+
+			// Base multiplier from average count
+			const baseMultiplier = 1 + (avgCount * PURE_COLOR_BOOST.randomGenerator.baseMultiplierPerCount);
+
+			// Spectrum synergy bonus
+			const hasAllPure = redCount > 0 && greenCount > 0 && blueCount > 0;
+			const synergyBonus = hasAllPure ? Math.log10(totalCount + 1) * PURE_COLOR_BOOST.randomGenerator.synergyMultiplier : 0;
+
+			return baseMultiplier + balanceBonus + synergyBonus;
+		},
 	};
 }
 

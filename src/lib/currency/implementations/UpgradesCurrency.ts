@@ -3,8 +3,7 @@ import { MultiCurrencyBase, type MultiCurrencyConfig } from "../core/MultiCurren
 import type { ICurrency, CurrencyType } from "../core/interfaces";
 import { pixels } from "./PixelsCurrency";
 import { lumen } from "./LumenCurrency";
-import { pureColors } from "./PureColorsCurrency";
-import { pixelStream, pixelStreamAnimation } from "../../stores/pixelStream";
+import { compositeColors } from "./CompositeColorsCurrency";
 
 // Import required configs and dependencies
 import {
@@ -242,7 +241,7 @@ function calculateNextPureColorMultiplier(color: "red" | "green" | "blue", count
 	if (count > 100) effectiveCount = 100 + Math.pow(count - 100, PURE_COLOR_BOOST.effectiveCountPowers.above100);
 	if (count > 500) effectiveCount = 400 + Math.pow(count - 500, PURE_COLOR_BOOST.effectiveCountPowers.above500);
 
-	const hasAllPure = pureColors.hasAllPureColors();
+	const hasAllPure = compositeColors.hasAllPureColors();
 	const synergyBonus = hasAllPure ? Math.log10(count + 1) * PURE_COLOR_BOOST.synergyMultiplier : 0;
 
 	const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.01) + synergyBonus;
@@ -679,12 +678,12 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 
 	// Helper function to get pure color boost for a generator
 	getPureColorBoost(generatorColor: "red" | "green" | "blue" | "random"): number {
-		// Use imported pureColors store
+		// Use imported compositeColors store
 
 		if (generatorColor === "random") {
-			return pureColors.getRandomGeneratorMultiplier();
+			return compositeColors.getRandomGeneratorMultiplier();
 		} else if (generatorColor === "red" || generatorColor === "green" || generatorColor === "blue") {
-			return pureColors.getPureColorMultiplier(generatorColor);
+			return compositeColors.getPureColorMultiplier(generatorColor);
 		}
 		return 1;
 	}
@@ -696,9 +695,9 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 		// Use imported pureColors store
 
 		if (generatorColor === "random") {
-			const redCount = pureColors.getPureColorCount("red");
-			const greenCount = pureColors.getPureColorCount("green");
-			const blueCount = pureColors.getPureColorCount("blue");
+			const redCount = compositeColors.getPureColorCount("red");
+			const greenCount = compositeColors.getPureColorCount("green");
+			const blueCount = compositeColors.getPureColorCount("blue");
 
 			return {
 				type: "random" as const,
@@ -711,12 +710,12 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 					Math.min(redCount, greenCount, blueCount) / Math.max(redCount, greenCount, blueCount) : 0,
 			};
 		} else {
-			const pureCount = pureColors.getPureColorCount(generatorColor);
+			const pureCount = compositeColors.getPureColorCount(generatorColor);
 			const nextCount = pureCount + 1;
 
 			// Calculate what the next multiplier would be
 			const nextMultiplier = pureCount === 0 ?
-				pureColors.getPureColorMultiplier(generatorColor) :
+				compositeColors.getPureColorMultiplier(generatorColor) :
 				calculateNextPureColorMultiplier(generatorColor, nextCount);
 
 			// Find next milestone
@@ -732,7 +731,7 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 				nextCount,
 				nextMilestone,
 				milestonesReached: milestones.filter(m => pureCount >= m).length,
-				hasAllPureColors: pureColors.hasAllPureColors(),
+				hasAllPureColors: compositeColors.hasAllPureColors(),
 			};
 		}
 	}
@@ -829,9 +828,9 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 						// Apply pure color multipliers for matching colors
 						let pureColorMultiplier = 1;
 						if (generator.color === "random") {
-							pureColorMultiplier = pureColors.getRandomGeneratorMultiplier();
+							pureColorMultiplier = compositeColors.getRandomGeneratorMultiplier();
 						} else if (generator.color === "red" || generator.color === "green" || generator.color === "blue") {
-							pureColorMultiplier = pureColors.getPureColorMultiplier(generator.color);
+							pureColorMultiplier = compositeColors.getPureColorMultiplier(generator.color);
 						}
 
 						const effectiveRate = rate * multiplier * efficiencyRatio * totalLumenMultiplier * pureColorMultiplier;
@@ -889,9 +888,9 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 						// Apply pure color multipliers for matching colors
 						let pureColorMultiplier = 1;
 						if (generator.color === "random") {
-							pureColorMultiplier = pureColors.getRandomGeneratorMultiplier();
+							pureColorMultiplier = compositeColors.getRandomGeneratorMultiplier();
 						} else if (generator.color === "red" || generator.color === "green" || generator.color === "blue") {
-							pureColorMultiplier = pureColors.getPureColorMultiplier(generator.color);
+							pureColorMultiplier = compositeColors.getPureColorMultiplier(generator.color);
 						}
 
 						// Apply soft cap efficiency, lumen multipliers, and pure color multipliers to this generator's rate

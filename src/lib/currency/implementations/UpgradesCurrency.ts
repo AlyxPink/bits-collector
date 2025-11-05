@@ -401,6 +401,12 @@ function getDynamicLumenCost(tabId: string, unlockedTabs: string[]): number {
 }
 
 class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
+	// Memoization caches for performance
+	private boostDetailsCache = new Map<string, any>();
+	private effectiveRateCache = new Map<string, any>();
+	private powerupMultiplierCache: { value: number; timestamp: number } | null = null;
+	private readonly cacheTTL = 1000; // Cache time-to-live in milliseconds
+
 	constructor() {
 		const config: MultiCurrencyConfig<UpgradeState> = {
 			id: "upgrades",

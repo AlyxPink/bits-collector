@@ -25,17 +25,34 @@ export abstract class MultiCurrencyBase<T> implements ICurrency {
 	protected store: Writable<T>;
 	protected config: MultiCurrencyConfig<T>;
 	subscribe: (callback: (value: T) => void) => () => void;
+	private saveTimeout: ReturnType<typeof setTimeout> | null = null;
+	private pendingState: T | null = null;
 
 	constructor(config: MultiCurrencyConfig<T>) {
 		this.config = config;
 		this.store = writable<T>(this.loadState());
 		this.subscribe = this.store.subscribe;
 
-		// Auto-save on changes if persistence enabled
+		// Auto-save on changes if persistence enabled (debounced for performance)
 		if (config.persistence) {
 			this.store.subscribe((value) => {
 				if (typeof window !== "undefined") {
-					localStorage.setItem(config.storageKey, JSON.stringify(value));
+					// Store the latest state
+					this.pendingState = value;
+
+					// Clear existing timeout
+					if (this.saveTimeout) {
+						clearTimeout(this.saveTimeout);
+					}
+
+					// Debounce save for 500ms (balance between performance and data safety)
+					this.saveTimeout = setTimeout(() => {
+						if (this.pendingState) {
+							localStorage.setItem(config.storageKey, JSON.stringify(this.pendingState));
+							this.pendingState = null;
+						}
+						this.saveTimeout = null;
+					}, 500);
 				}
 			});
 		}
@@ -65,8 +82,16 @@ export abstract class MultiCurrencyBase<T> implements ICurrency {
 
 	save(): void {
 		if (typeof window !== "undefined" && this.config.persistence) {
-			const state = get(this.store);
+			// Clear any pending debounced save
+			if (this.saveTimeout) {
+				clearTimeout(this.saveTimeout);
+				this.saveTimeout = null;
+			}
+
+			// Immediately save current state
+			const state = this.pendingState || get(this.store);
 			localStorage.setItem(this.config.storageKey, JSON.stringify(state));
+			this.pendingState = null;
 		}
 	}
 

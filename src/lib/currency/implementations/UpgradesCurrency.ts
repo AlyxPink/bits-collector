@@ -4,7 +4,7 @@ import type { ICurrency, CurrencyType } from "../core/interfaces";
 import { pixels } from "./PixelsCurrency";
 import { lumen } from "./LumenCurrency";
 import { pureColors } from "./PureColorsCurrency";
-import { pixelStream } from "../../stores/pixelStream";
+import { pixelStream, pixelStreamAnimation } from "../../stores/pixelStream";
 
 // Import required configs and dependencies
 import {
@@ -864,7 +864,10 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 					pixels.addPixelsBulk(bulkPixels);
 				}
 			} else {
-				// Normal mode: keep existing behavior for smooth visual updates
+				// Normal mode: batch pixels for performance (single store update per tick)
+				const normalModeBulkPixels = { red: 0, green: 0, blue: 0 };
+				const streamPixels: ("red" | "green" | "blue")[] = [];
+
 				Object.values(state.generators).forEach((generator) => {
 					if (generator.owned && generator.level > 0) {
 						const rate = generator.baseRate * generator.level;
@@ -901,37 +904,36 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 						if (bitsToAdd > 0) {
 							state.bitAccumulator[generator.id] -= bitsToAdd; // Remove whole bits, keep fractional
 
-							// Track pixels for stream visualization
-							const streamPixels: ("red" | "green" | "blue")[] = [];
-
 							if (generator.color === "random") {
-								// Random color selection
-								const colors: ("red" | "green" | "blue")[] = [
-									"red",
-									"green",
-									"blue",
-								];
+								// Random color selection - batch count for each color
+								const colors: ("red" | "green" | "blue")[] = ["red", "green", "blue"];
 								for (let i = 0; i < bitsToAdd; i++) {
 									const randomColor = colors[Math.floor(Math.random() * 3)];
-									pixels.addPixel(randomColor);
+									normalModeBulkPixels[randomColor]++;
 									streamPixels.push(randomColor);
 								}
 							} else {
-								// Specific color
+								// Specific color - batch count
 								const color = generator.color as "red" | "green" | "blue";
+								normalModeBulkPixels[color] += bitsToAdd;
+								// Build stream array for visualization
 								for (let i = 0; i < bitsToAdd; i++) {
-									pixels.addPixel(color);
 									streamPixels.push(color);
 								}
-							}
-
-							// Add pixels to stream visualization
-							if (streamPixels.length > 0) {
-								pixelStream.addPixels(streamPixels);
 							}
 						}
 					}
 				});
+
+				// Single bulk update for all pixels from all generators
+				if (normalModeBulkPixels.red > 0 || normalModeBulkPixels.green > 0 || normalModeBulkPixels.blue > 0) {
+					pixels.addPixelsBulk(normalModeBulkPixels);
+				}
+
+				// Add all pixels to stream visualization in one batch (only if stream is visible)
+				if (streamPixels.length > 0 && pixelStreamAnimation.isRunning()) {
+					pixelStream.addPixels(streamPixels);
+				}
 			}
 
 			return {

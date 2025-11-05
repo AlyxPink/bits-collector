@@ -1,4 +1,7 @@
 <script lang="ts">
+import { onMount, onDestroy } from "svelte";
+import { gameLoop } from "$lib/stores/gameLoop";
+import type { GameSystem } from "$lib/stores/gameLoop";
 import {
 	ownedGenerators,
 	upgrades,
@@ -34,28 +37,47 @@ let generatorsByColor = $derived({
 
 let isActive = $state(false);
 let flashColor = $state<"red" | "green" | "blue" | "purple">("purple");
+let timeSinceLastFlash = 0;
 
-// Flash indicator when generators are active
-if (typeof window !== "undefined") {
-	setInterval(() => {
+// Flash indicator integrated with game loop (much more efficient)
+const flashSystem: GameSystem = {
+	tick(deltaTime: number) {
 		if ($ownedGenerators.length > 0) {
-			isActive = true;
+			timeSinceLastFlash += deltaTime;
 
-			// Pick a random color to flash
-			const colors: ("red" | "green" | "blue" | "purple")[] = [
-				"red",
-				"green",
-				"blue",
-				"purple",
-			];
-			flashColor = colors[Math.floor(Math.random() * colors.length)];
+			// Flash interval based on speed multiplier (faster with higher multipliers)
+			const flashInterval = Math.max(0.1, 1.0 / Math.max(1, $totalSpeedMultiplier));
 
-			setTimeout(() => {
-				isActive = false;
-			}, 100);
+			if (timeSinceLastFlash >= flashInterval) {
+				timeSinceLastFlash = 0;
+				isActive = true;
+
+				// Pick a random color to flash
+				const colors: ("red" | "green" | "blue" | "purple")[] = [
+					"red",
+					"green",
+					"blue",
+					"purple",
+				];
+				flashColor = colors[Math.floor(Math.random() * colors.length)];
+
+				// Turn off flash after 100ms
+				setTimeout(() => {
+					isActive = false;
+				}, 100);
+			}
 		}
-	}, Math.max(100, 1000 / Math.max(1, $totalSpeedMultiplier))); // Flash faster with higher multipliers, min 100ms
-}
+	}
+};
+
+// Register with game loop on mount, unregister on destroy
+onMount(() => {
+	gameLoop.register(flashSystem);
+});
+
+onDestroy(() => {
+	gameLoop.unregister(flashSystem);
+});
 
 const colorClasses = {
 	red: "bg-red-500 shadow-red-500/50",

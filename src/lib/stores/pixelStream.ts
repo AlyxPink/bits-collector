@@ -20,6 +20,7 @@ export interface PixelStreamState {
 let MATRIX_WIDTH = 30; // Dynamic width, will be updated by component
 let MATRIX_HEIGHT = 10; // Dynamic height based on generation rate
 const PIXEL_LIFETIME = 3000; // 3 seconds in milliseconds
+const MAX_PIXELS = 300; // Hard cap on pixel array size for performance
 
 // Performance thresholds for sampling
 const SAMPLING_THRESHOLDS = {
@@ -117,9 +118,19 @@ function createPixelStreamStore() {
 					});
 				});
 
+				// Combine new pixels with existing, but enforce hard cap
+				let combinedPixels = [...state.pixels, ...newPixels];
+
+				// If we exceed max pixels, remove oldest ones
+				if (combinedPixels.length > MAX_PIXELS) {
+					combinedPixels = combinedPixels
+						.sort((a, b) => b.createdAt - a.createdAt)
+						.slice(0, MAX_PIXELS);
+				}
+
 				return {
 					...state,
-					pixels: [...state.pixels, ...newPixels],
+					pixels: combinedPixels,
 					nextId: state.nextId + sampledColors.length,
 				};
 			});
@@ -235,11 +246,30 @@ function createPixelStreamStore() {
 
 export const pixelStream = createPixelStreamStore();
 
-// Animation loop - update pixel positions every frame
-if (typeof window !== "undefined") {
-	function animate() {
-		pixelStream.updateStream();
-		requestAnimationFrame(animate);
-	}
-	requestAnimationFrame(animate);
-}
+// Animation loop control - managed externally by components
+let animationFrameId: number | null = null;
+let isAnimating = false;
+
+export const pixelStreamAnimation = {
+	start: () => {
+		if (typeof window === "undefined" || isAnimating) return;
+
+		isAnimating = true;
+		function animate() {
+			if (!isAnimating) return;
+			pixelStream.updateStream();
+			animationFrameId = requestAnimationFrame(animate);
+		}
+		animationFrameId = requestAnimationFrame(animate);
+	},
+
+	stop: () => {
+		isAnimating = false;
+		if (animationFrameId !== null) {
+			cancelAnimationFrame(animationFrameId);
+			animationFrameId = null;
+		}
+	},
+
+	isRunning: () => isAnimating
+};

@@ -5,8 +5,8 @@ export const AUTO_CONVERTER_CONFIG: Record<string, AutoConverterConfig> = {
 	// White converter
 	whiteConverter: {
 		baseCost: 3,
-		costMultiplier: 2.25,
-		baseRate: 0.8,
+		costMultiplier: 1.5,
+		baseRate: 1.0,
 		rateMultiplier: 1.5,
 		maxLevel: 20,
 		unlockRequirement: 10,

@@ -1,5 +1,5 @@
 <script lang="ts">
-import { pixelStream } from "$lib/stores/pixelStream";
+import { pixelStream, pixelStreamAnimation } from "$lib/stores/pixelStream";
 import { ownedGenerators, totalSpeedMultiplier } from "$lib/currency/implementations/UpgradesCurrency";
 import StreamHeader from "./pixel-stream/StreamHeader.svelte";
 import PixelMatrix from "./pixel-stream/PixelMatrix.svelte";
@@ -24,10 +24,20 @@ function loadStreamSettings() {
 
 let streamVisible = $state(loadStreamSettings().visible);
 
-// Save settings to localStorage when changed
+// Control animation loop based on visibility
 $effect(() => {
 	if (typeof window !== "undefined") {
+		// Save visibility setting
 		localStorage.setItem("pixelStreamSettings", JSON.stringify({ visible: streamVisible }));
+
+		// Start/stop animation loop based on visibility
+		if (streamVisible) {
+			pixelStreamAnimation.start();
+		} else {
+			pixelStreamAnimation.stop();
+			// Clear pixels when hidden to free memory
+			pixelStream.clear();
+		}
 	}
 });
 
@@ -79,12 +89,20 @@ onMount(() => {
 	}, 0);
 
 	// Animation loop with manual updates - only run when visible
-	function animate() {
-		if (streamVisible) {
+	// Throttle to 30 FPS for better performance (still smooth but less CPU)
+	let lastFrameTime = 0;
+	const frameInterval = 1000 / 30; // 30 FPS
+
+	function animate(currentTime: number) {
+		const elapsed = currentTime - lastFrameTime;
+
+		if (streamVisible && elapsed >= frameInterval) {
+			lastFrameTime = currentTime - (elapsed % frameInterval);
 			pixelMatrix = pixelStream.getPixelMatrix();
 			stats = pixelStream.getStats();
 			matrixDimensions = pixelStream.getMatrixDimensions();
 		}
+
 		animationFrame = requestAnimationFrame(animate);
 	}
 	animationFrame = requestAnimationFrame(animate);

@@ -5,10 +5,10 @@ export const AUTO_CONVERTER_CONFIG: Record<string, AutoConverterConfig> = {
 	// White converter
 	whiteConverter: {
 		baseCost: 3,
-		costMultiplier: 1.5,
+		costMultiplier: 2.25,
 		baseRate: 1.0,
-		rateMultiplier: 1.5,
-		maxLevel: 20,
+		rateMultiplier: 2.5,
+		maxLevel: 30,
 		unlockRequirement: 10,
 	},
 

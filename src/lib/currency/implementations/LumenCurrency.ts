@@ -79,7 +79,7 @@ const DEFAULT_LUMEN_UPGRADES: Record<string, LumenUpgrade> = {
 	chromaticResonance: {
 		id: "chromaticResonance",
 		name: "Chromatic Resonance",
-		description: "RGB generators get +50% rate per 100 total lumen",
+		description: "RGB generators boosted by logarithmic lumen scaling",
 		type: "synergy",
 		effect: 0.5,
 		baseCost: LUMEN_UPGRADE_CONFIG.collectorsIII.baseCost,
@@ -101,9 +101,9 @@ const DEFAULT_LUMEN_UPGRADES: Record<string, LumenUpgrade> = {
 	luminousOverflow: {
 		id: "luminousOverflow",
 		name: "Luminous Overflow",
-		description: "Lumen/sec above 100 boosts RGB generation by 25%",
+		description: "Lumen/sec above 100 boosts RGB generation by 10%",
 		type: "synergy",
-		effect: 0.25,
+		effect: 0.1,
 		baseCost: LUMEN_UPGRADE_CONFIG.convertersII.baseCost,
 		costMultiplier: 50,
 		level: 0,
@@ -474,11 +474,14 @@ class LumenCurrencyImpl extends MultiCurrencyBase<LumenState> {
 		const state = this.getState();
 		if (state.upgrades.chromaticResonance.level === 0) return 1;
 
-		const multiplierPerHundred = state.upgrades.chromaticResonance.effect;
-		const hundredsOfLumen = Math.floor(state.lifetimeLumen / 100);
+		const multiplierPerLog = state.upgrades.chromaticResonance.effect;
 		const levelsOwned = state.upgrades.chromaticResonance.level;
 
-		return 1 + (multiplierPerHundred * hundredsOfLumen * levelsOwned);
+		// Logarithmic scaling to prevent unbounded exponential growth
+		// Effect: At 10K lumen: 2x, At 100K lumen: 2.5x, At 1M lumen: 3x
+		const bonusFromLumen = Math.log10(state.lifetimeLumen + 10) * multiplierPerLog * levelsOwned;
+
+		return 1 + bonusFromLumen;
 	}
 
 	getConversionCostReduction(): number {

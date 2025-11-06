@@ -41,50 +41,13 @@
     currentColor.unlocked
   );
 
+  // Use the store's methods instead of local calculations
+  let unlockCost = $derived(store.getUnlockCost(color.id));
+
   let canAffordUnlock = $derived((() => {
     if (currentColor.unlocked) return false;
-    const allColors = Object.values($compositeColors);
-    const unlockedCount = allColors.filter(c => c.unlocked).length;
-    const cost = calculateUnlockCost(unlockedCount, currentColor.id);
-    return $pixels.red >= cost.red &&
-           $pixels.green >= cost.green &&
-           $pixels.blue >= cost.blue;
+    return store.canAffordUnlock(color.id);
   })());
-
-  let unlockCost = $derived((() => {
-    const allColors = Object.values($compositeColors);
-    const unlockedCount = allColors.filter(c => c.unlocked).length;
-    return calculateUnlockCost(unlockedCount, currentColor.id);
-  })());
-
-  // Helper to calculate unlock cost (mirrors the logic from config)
-  function calculateUnlockCost(unlockedCount: number, colorId: string) {
-    // Import the config calculation functions
-    const isPure = currentColor.type === "pure";
-
-    if (isPure) {
-      // Pure colors have higher unlock costs
-      const colorMap: Record<string, { red: number; green: number; blue: number }> = {
-        crimson: { red: 100, green: 0, blue: 0 },
-        emerald: { red: 0, green: 100, blue: 0 },
-        sapphire: { red: 0, green: 0, blue: 100 }
-      };
-      const baseCost = colorMap[colorId] || { red: 100, green: 100, blue: 100 };
-      const total = baseCost.red + baseCost.green + baseCost.blue;
-      return { ...baseCost, total };
-    } else {
-      // Mixed colors use progressive cost
-      const baseCost = 10;
-      const costMultiplier = 2;
-      const cost = Math.floor(baseCost * Math.pow(costMultiplier, unlockedCount));
-      return {
-        red: cost,
-        green: cost,
-        blue: cost,
-        total: cost * 3
-      };
-    }
-  }
 
   // Check if this is a pure color and get boost info
   let boostInfo = $derived(() => {

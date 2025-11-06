@@ -12,10 +12,10 @@
   let { color }: Props = $props();
 
   let isMixing = $state(false);
-  let canAfford = $derived(compositeColors.canAfford(color.id as keyof CompositeColorState));
-  let canAffordUnlock = $derived(compositeColors.canAffordUnlock(color.id as keyof CompositeColorState));
-  let unlockCost = $derived(compositeColors.getUnlockCost(color.id as keyof CompositeColorState));
-  
+  let canAfford = $derived(compositeColors.canAfford(color.id));
+  let canAffordUnlock = $derived(compositeColors.canAffordUnlock(color.id));
+  let unlockCost = $derived(compositeColors.getUnlockCost(color.id));
+
   // Get boost info for pure colors
   let boostInfo = $derived(() => {
     if (color.type !== "pure") return null;
@@ -90,10 +90,10 @@
     if (!color.unlocked) {
       // Try to unlock
       if (canAffordUnlock) {
-        const success = compositeColors.unlockColor(color.id as keyof CompositeColorState);
+        const success = compositeColors.unlockColor(color.id);
         if (success) {
           audio.playConvertSound(); // Reuse convert sound for unlocking
-          
+
           // Trigger animation
           isMixing = true;
           setTimeout(() => {
@@ -104,10 +104,10 @@
     } else {
       // Try to mix
       if (canAfford) {
-        const success = compositeColors.mixColor(color.id as keyof CompositeColorState);
+        const success = compositeColors.mixColor(color.id);
         if (success) {
           audio.playConvertSound(); // Reuse convert sound for mixing
-          
+
           // Trigger animation
           isMixing = true;
           setTimeout(() => {

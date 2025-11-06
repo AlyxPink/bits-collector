@@ -391,10 +391,10 @@ function getDynamicLumenCost(tabId: string, unlockedTabs: string[]): number {
 
 	// Handle mutual exclusivity between generators and powerups
 	if (tabId === "generators" && unlockedTabs.includes("powerups")) {
-		return 100000; // 100,000 lumen if powerups already purchased
+		return 5000; // 5,000 lumen if powerups already purchased (REDUCED from 100,000)
 	}
 	if (tabId === "powerups" && unlockedTabs.includes("generators")) {
-		return 100000; // 100,000 lumen if generators already purchased
+		return 5000; // 5,000 lumen if generators already purchased (REDUCED from 100,000)
 	}
 
 	return baseLumenCost; // Default cost

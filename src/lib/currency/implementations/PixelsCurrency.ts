@@ -61,8 +61,8 @@ function calculateConversionCost(currentWhite: number, breakthroughs?: any, lume
 function calculateConversionEfficiency(totalConversions: number, breakthroughs?: any): number {
 	let efficiency = 1.0;
 
-	// Efficiency decay with usage - more conversions = lower efficiency
-	let decayRate = 0.2;
+	// Efficiency decay with usage - more conversions = lower efficiency (REDUCED from 0.2 to 0.1)
+	let decayRate = 0.1;
 
 	// Apply Efficiency Stabilizer breakthrough (reduces decay by 50%)
 	if (breakthroughs?.efficiencyStabilizer?.purchased) {
@@ -77,8 +77,8 @@ function calculateConversionEfficiency(totalConversions: number, breakthroughs?:
 		efficiency *= (1 + breakthroughs.whiteAmplifier.effect);
 	}
 
-	// Minimum 10% efficiency to prevent complete stalling
-	return Math.max(efficiency, 0.1);
+	// Minimum 25% efficiency to prevent stalling (INCREASED from 0.1)
+	return Math.max(efficiency, 0.25);
 }
 
 // ============================================================================

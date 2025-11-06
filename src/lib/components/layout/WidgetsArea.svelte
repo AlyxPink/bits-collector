@@ -1,6 +1,7 @@
 <script lang="ts">
 import GeneratorIndicator from "$lib/components/upgrades/GeneratorIndicator.svelte";
 import GameStatsWidget from "$lib/components/stats/GameStatsWidget.svelte";
+import PerformanceMetrics from "$lib/components/dev/PerformanceMetrics.svelte";
 </script>
 
 <div class="h-full bg-black/10 border-r border-green-500/20 p-4 space-y-6">
@@ -27,7 +28,15 @@ import GameStatsWidget from "$lib/components/stats/GameStatsWidget.svelte";
     </h3>
     <GameStatsWidget />
   </div>
-  
+
+  <!-- Performance Monitor Widget -->
+  <div class="bg-black/30 rounded-lg p-4 border border-cyan-500/30">
+    <h3 class="text-sm font-bold uppercase tracking-wider text-cyan-400 mb-3 text-center">
+      Performance Monitor
+    </h3>
+    <PerformanceMetrics />
+  </div>
+
   <!-- Another Future Widget Placeholder -->
   <div class="bg-black/20 rounded-lg p-4 border border-gray-600/30 opacity-50">
     <h3 class="text-sm font-bold uppercase tracking-wider text-gray-400 mb-3 text-center">

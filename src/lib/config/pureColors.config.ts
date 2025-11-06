@@ -10,8 +10,8 @@ export const PURE_COLOR_UNLOCK_CONFIG: CompositeColorUnlockConfig = {
 		softCapPower: 0.7,   // Not used for pure colors
 	},
 	pure: {
-		baseCost: 5000,      // First pure color costs 5000 RGB total
-		costMultiplier: 2.2,  // Each subsequent unlock costs 2.2x more  
+		baseCost: 2000,      // First pure color costs 2000 RGB total (~2400 with log) - REDUCED from 5000 to match downscaled RGB production
+		costMultiplier: 2.2,  // Each subsequent unlock costs 2.2x more
 		softCapThreshold: 2,  // After 2nd unlock, apply soft cap
 		softCapPower: 0.6,   // Reduce scaling power to 0.6 after threshold
 	},

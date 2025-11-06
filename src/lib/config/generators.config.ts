@@ -3,24 +3,28 @@ import type { GeneratorConfig, PowerupConfig, BreakthroughConfig, TabUnlockConfi
 // Generator configurations
 export const GENERATOR_CONFIG: Record<string, GeneratorConfig> = {
 	red: {
-		baseRate: 0.5,
+		baseRate: 0.3, // Reduced from 0.5 for balance
 		baseCost: 3,
 		costMultiplier: 1.25,
+		maxLevel: 10, // Cap to prevent exponential growth
 	},
 	green: {
-		baseRate: 0.5,
+		baseRate: 0.3, // Reduced from 0.5 for balance
 		baseCost: 3,
 		costMultiplier: 1.25,
+		maxLevel: 10, // Cap to prevent exponential growth
 	},
 	blue: {
-		baseRate: 0.5,
+		baseRate: 0.3, // Reduced from 0.5 for balance
 		baseCost: 3,
 		costMultiplier: 1.25,
+		maxLevel: 10, // Cap to prevent exponential growth
 	},
 	random: {
 		baseRate: 0.9,
 		baseCost: 5,
 		costMultiplier: 1.6,
+		maxLevel: 15, // Keep random generator slightly higher
 	},
 };
 
@@ -30,22 +34,22 @@ export const GENERATOR_CONFIG: Record<string, GeneratorConfig> = {
 // This prevents exponential growth while keeping progression satisfying
 export const POWERUP_CONFIG: Record<string, PowerupConfig> = {
 	speedBoost: {
-		multiplier: 2, // Adds +100% per level (+1.0x in additive formula)
+		multiplier: 1.5, // Adds +50% per level (+0.5x in additive formula) - Reduced from 2
 		baseCost: 50,
 		costMultiplier: 4, // Increased from 3 to slow progression
-		maxLevel: 5, // 5 levels = +500% = 6x total
+		maxLevel: 5, // 5 levels = +250% = 3.5x total (down from 6x)
 	},
 	megaSpeed: {
-		multiplier: 3, // Adds +200% per level (+2.0x in additive formula)
+		multiplier: 2, // Adds +100% per level (+1.0x in additive formula) - Reduced from 3
 		baseCost: 500, // Increased from 200
 		costMultiplier: 5, // Increased from 4
-		maxLevel: 3, // 3 levels = +600% = 7x total
+		maxLevel: 3, // 3 levels = +300% = 4x total (down from 7x)
 	},
 	ultraSpeed: {
-		multiplier: 4, // Adds +300% per level (+3.0x in additive formula)
+		multiplier: 2.5, // Adds +150% per level (+1.5x in additive formula) - Reduced from 4
 		baseCost: 5000, // Increased from 1000
 		costMultiplier: 6, // Increased from 5
-		maxLevel: 2, // 2 levels = +600% = 7x total
+		maxLevel: 2, // 2 levels = +300% = 4x total (down from 7x)
 	},
 };
 
@@ -81,7 +85,7 @@ export const BREAKTHROUGH_CONFIG: Record<string, BreakthroughConfig> = {
 	},
 	bulkConverter: {
 		type: "multiplier",
-		effect: 5, // Convert up to 5 sets at once
+		effect: 10, // Convert up to 10 sets at once (increased from 5)
 		baseCost: 500,
 	},
 	whiteAmplifier: {
@@ -117,7 +121,7 @@ export const TAB_UNLOCK_CONFIG: Record<string, TabUnlockConfig> = {
 		red: 100,
 		green: 100,
 		blue: 100,
-		lumen: 100, // Initially 100, increases to 100,000 if generators purchased
+		lumen: 100, // Initially 100, increases to 5,000 if generators purchased
 	},
 	breakthroughs: {
 		white: 150,

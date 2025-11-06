@@ -5,7 +5,9 @@
  * Composite colors combine both mixed and pure colors into a single unified system.
  */
 
+import { get } from "svelte/store";
 import { createColorCurrency, createUnlockedDerived, type CompositeColor, type ColorState, type ColorCurrencyConfig } from "./ColorCurrency";
+import { pixels } from "./PixelsCurrency";
 import {
 	DEFAULT_MIXED_COLOR_UNLOCKS,
 	DEFAULT_PURE_COLOR_UNLOCKS,
@@ -216,6 +218,90 @@ function createCompositeColorsCurrency() {
 	return {
 		...store,
 
+		// Override getUnlockCost to count only colors of the same type
+		getUnlockCost: (colorId: string) => {
+			const currentColors = store.getColors();
+			const color = currentColors.find(c => c.id === colorId);
+			if (!color) {
+				return { red: 0, green: 0, blue: 0, total: 0 };
+			}
+
+			// Count only unlocked colors of the SAME TYPE
+			const unlockedCount = currentColors.filter(c => c.unlocked && c.type === color.type).length;
+			const cost = calculateCompositeColorUnlockCost(unlockedCount, colorId);
+
+			return cost;
+		},
+
+		// Override canAffordUnlock to count only colors of the same type
+		canAffordUnlock: (colorId: string) => {
+			const currentPixels = get(pixels);
+			const currentColors = store.getColors();
+			const color = currentColors.find(c => c.id === colorId);
+			if (!color) {
+				return false;
+			}
+
+			// Count only unlocked colors of the SAME TYPE
+			const unlockedCount = currentColors.filter(c => c.unlocked && c.type === color.type).length;
+			const cost = calculateCompositeColorUnlockCost(unlockedCount, colorId);
+
+			const canAfford = (
+				currentPixels.red >= cost.red &&
+				currentPixels.green >= cost.green &&
+				currentPixels.blue >= cost.blue
+			);
+
+			return canAfford;
+		},
+
+		// Override unlockColor to count only colors of the same type
+		unlockColor: (colorId: string) => {
+			const currentPixels = get(pixels);
+			const currentColors = store.getColors();
+			const color = currentColors.find(c => c.id === colorId);
+
+			if (!color) {
+				return false;
+			}
+
+			if (color.unlocked) {
+				return false;
+			}
+
+			// Count only unlocked colors of the SAME TYPE
+			const unlockedCount = currentColors.filter(c => c.unlocked && c.type === color.type).length;
+			const cost = calculateCompositeColorUnlockCost(unlockedCount, colorId);
+
+			// Check if we can afford the unlock
+			if (
+				currentPixels.red >= cost.red &&
+				currentPixels.green >= cost.green &&
+				currentPixels.blue >= cost.blue
+			) {
+				// Deduct RGB pixels
+				pixels.update((p) => ({
+					...p,
+					red: p.red - cost.red,
+					green: p.green - cost.green,
+					blue: p.blue - cost.blue,
+				}));
+
+				// Unlock the color
+				store.update((colors: CompositeColorState) => ({
+					...colors,
+					[colorId]: {
+						...colors[colorId],
+						unlocked: true,
+					},
+				}));
+
+				return true;
+			}
+
+			return false;
+		},
+
 		// Get mixed colors only
 		getMixedColors: () => {
 			return store.getColors().filter(color => color.type === "mixed");
@@ -316,7 +402,7 @@ function createCompositeColorsCurrency() {
 			const hasAllPure = compositeColors.hasAllPureColors();
 			const synergyBonus = hasAllPure ? Math.log10(pureCount + 1) * PURE_COLOR_BOOST.synergyMultiplier : 0;
 
-			const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.01) + synergyBonus;
+			const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.005) + synergyBonus;
 
 			// Apply smooth soft cap
 			if (rawMultiplier > PURE_COLOR_BOOST.capThresholds.hard) return 18 + Math.pow(rawMultiplier - PURE_COLOR_BOOST.capThresholds.hard, PURE_COLOR_BOOST.capPowers.hard);

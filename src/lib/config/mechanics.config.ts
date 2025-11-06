@@ -2,15 +2,15 @@ import type { SoftCapConfig, MilestoneConfig } from "./types";
 
 // Game mechanics constants - soft caps, thresholds, formulas
 export const SOFT_CAPS: SoftCapConfig = {
-	thresholds: [10, 100, 1000],
-	efficiencyFactors: [0.85, 0.75, 0.6, 0.45], // Applied at each threshold
-	powers: [0.85, 0.75, 0.6, 0.45], // Power scaling factors
+	thresholds: [5, 50, 500], // REDUCED from [10, 100, 1000] - apply caps earlier
+	efficiencyFactors: [0.85, 0.65, 0.5, 0.35], // More aggressive caps (was [0.85, 0.75, 0.6, 0.45])
+	powers: [0.85, 0.65, 0.5, 0.35], // More aggressive power scaling (was [0.85, 0.75, 0.6, 0.45])
 };
 
 // Pure color milestone system
 export const PURE_COLOR_MILESTONES: MilestoneConfig = {
 	thresholds: [10, 25, 50, 100, 250, 500, 1000],
-	bonusPerMilestone: 0.15, // 15% bonus per milestone reached
+	bonusPerMilestone: 0.1, // 10% bonus per milestone reached (REDUCED from 0.15)
 };
 
 // Production scaling constants
@@ -18,9 +18,9 @@ export const PRODUCTION_SCALING = {
 	// Smooth scaling powers for different production ranges
 	basePower: 0.85,
 	softCapPowers: {
-		tier1: 0.75, // Above 10
-		tier2: 0.6,  // Above 100
-		tier3: 0.45, // Above 1000
+		tier1: 0.65, // Above 5 (REDUCED from 0.75, threshold reduced from 10)
+		tier2: 0.5,  // Above 50 (REDUCED from 0.6, threshold reduced from 100)
+		tier3: 0.35, // Above 500 (REDUCED from 0.45, threshold reduced from 1000)
 	},
 	multipliers: {
 		tier1: 1.5,
@@ -32,12 +32,12 @@ export const PRODUCTION_SCALING = {
 // Pure color boost calculation constants
 export const PURE_COLOR_BOOST = {
 	baseBoostPower: 0.5,        // Square root scaling
-	baseBoostMultiplier: 0.1,   // Base multiplier
+	baseBoostMultiplier: 0.05,  // Base multiplier (REDUCED from 0.1)
 	effectiveCountPowers: {
 		above100: 0.8,
 		above500: 0.6,
 	},
-	synergyMultiplier: 0.2,     // Log10 synergy bonus
+	synergyMultiplier: 0.1,     // Log10 synergy bonus (REDUCED from 0.2)
 	capThresholds: {
 		soft: 5,
 		medium: 10,
@@ -49,9 +49,9 @@ export const PURE_COLOR_BOOST = {
 		hard: 0.3,
 	},
 	randomGenerator: {
-		balanceBonus: 0.5,              // Bonus for balanced RGB counts
-		baseMultiplierPerCount: 0.01,   // Multiplier per average pure color count
-		synergyMultiplier: 0.3,         // Log10 synergy bonus for having all colors
+		balanceBonus: 0.25,              // Bonus for balanced RGB counts (REDUCED from 0.5)
+		baseMultiplierPerCount: 0.025,   // Multiplier per average pure color count (matches PureColorsCurrency reduction)
+		synergyMultiplier: 0.15,         // Log10 synergy bonus for having all colors (REDUCED from 0.3)
 	}
 };
 

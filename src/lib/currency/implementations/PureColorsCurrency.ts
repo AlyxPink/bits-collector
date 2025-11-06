@@ -155,19 +155,19 @@ function createPureColorsCurrency() {
 
 			if (pureCount === 0) return 1;
 
-			// Layer 1: Base logarithmic growth
-			const baseBoost = Math.pow(pureCount, 0.5) * 0.1; // Sqrt scaling
+			// Layer 1: Base logarithmic growth (REDUCED from 0.1 to 0.05)
+			const baseBoost = Math.pow(pureCount, 0.5) * 0.05; // Sqrt scaling
 
-			// Layer 2: Milestone bonuses at 10, 25, 50, 100, etc.
+			// Layer 2: Milestone bonuses at 10, 25, 50, 100, etc. (REDUCED from 0.15 to 0.1)
 			const milestones = [10, 25, 50, 100, 250, 500, 1000];
-			const milestoneBonus = milestones.filter((m) => pureCount >= m).length * 0.15;
+			const milestoneBonus = milestones.filter((m) => pureCount >= m).length * 0.1;
 
 			// Layer 3: Diminishing returns after certain thresholds
 			let effectiveCount = pureCount;
 			if (pureCount > 100) effectiveCount = 100 + Math.pow(pureCount - 100, 0.8);
 			if (pureCount > 500) effectiveCount = 400 + Math.pow(pureCount - 500, 0.6);
 
-			// Layer 4: Synergy bonus if you have all three pure colors (unlocked and owned)
+			// Layer 4: Synergy bonus if you have all three pure colors (unlocked and owned) (REDUCED from 0.2 to 0.1)
 			const allColors = store.getColors();
 			const crimsonAll = allColors.find(c => c.id === "crimson");
 			const emeraldAll = allColors.find(c => c.id === "emerald");
@@ -175,10 +175,10 @@ function createPureColorsCurrency() {
 			const hasAllPure = !!(crimsonAll?.unlocked && crimsonAll.count > 0 &&
 								 emeraldAll?.unlocked && emeraldAll.count > 0 &&
 								 sapphireAll?.unlocked && sapphireAll.count > 0);
-			const synergyBonus = hasAllPure ? Math.log10(pureCount + 1) * 0.2 : 0;
+			const synergyBonus = hasAllPure ? Math.log10(pureCount + 1) * 0.1 : 0;
 
-			// Final calculation with soft cap smoothing
-			const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.01) + synergyBonus;
+			// Final calculation with soft cap smoothing (REDUCED effectiveCount from 0.01 to 0.005)
+			const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.005) + synergyBonus;
 
 			// Apply smooth soft cap (no hard walls!)
 			if (rawMultiplier > 20) return 18 + Math.pow(rawMultiplier - 20, 0.3);
@@ -207,16 +207,16 @@ function createPureColorsCurrency() {
 
 			if (totalCount === 0) return 1;
 
-			// Random generator gets boosted by having balanced pure colors
+			// Random generator gets boosted by having balanced pure colors (REDUCED from 0.5 to 0.25)
 			const balance = Math.min(redCount, greenCount, blueCount) / Math.max(redCount, greenCount, blueCount, 1);
-			const balanceBonus = balance * 0.5; // Up to 50% bonus for perfect balance
+			const balanceBonus = balance * 0.25; // Up to 25% bonus for perfect balance
 
-			// Base multiplier from average count
-			const baseMultiplier = 1 + (avgCount * 0.05); // 5% per average count
+			// Base multiplier from average count (REDUCED from 0.05 to 0.025)
+			const baseMultiplier = 1 + (avgCount * 0.025); // 2.5% per average count
 
-			// Spectrum synergy bonus
+			// Spectrum synergy bonus (REDUCED from 0.3 to 0.15)
 			const hasAllPure = redCount > 0 && greenCount > 0 && blueCount > 0;
-			const synergyBonus = hasAllPure ? Math.log10(totalCount + 1) * 0.3 : 0;
+			const synergyBonus = hasAllPure ? Math.log10(totalCount + 1) * 0.15 : 0;
 
 			return baseMultiplier + balanceBonus + synergyBonus;
 		},

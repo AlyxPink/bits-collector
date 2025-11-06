@@ -4,6 +4,7 @@ export interface GeneratorConfig {
 	baseRate: number;
 	baseCost: number;
 	costMultiplier: number;
+	maxLevel?: number; // Optional max level cap for generators
 }
 
 export interface PowerupConfig {

@@ -48,13 +48,22 @@ onDestroy(() => {
 	}
 });
 
-// Color coding for metrics based on budget
+// Color coding for budget metrics (lower is better: updates, derived recalcs)
 function getMetricColor(value: number, budgetValue: number): string {
 	const ratio = value / budgetValue;
 	if (ratio < 0.5) return "text-green-400";
 	if (ratio < 0.8) return "text-yellow-400";
 	if (ratio < 1.0) return "text-orange-400";
 	return "text-red-400";
+}
+
+// Color coding for target metrics (higher is better: ticks, FPS)
+function getTargetMetricColor(value: number, targetValue: number): string {
+	const ratio = value / targetValue;
+	if (ratio >= 0.9) return "text-green-400";  // 90-100%+ of target
+	if (ratio >= 0.7) return "text-yellow-400"; // 70-89% of target
+	if (ratio >= 0.5) return "text-orange-400"; // 50-69% of target
+	return "text-red-400";                       // <50% of target
 }
 
 // Color coding for performance mode
@@ -101,7 +110,7 @@ function getModeEmoji(mode: string): string {
   <!-- Game Ticks -->
   <div class="flex justify-between gap-4">
     <span class="text-gray-400">Ticks/s:</span>
-    <span class="{getMetricColor(metrics.ticks, metrics.expectedTPS || budget.ticksPerSecond)}">
+    <span class="{getTargetMetricColor(metrics.ticks, metrics.expectedTPS || budget.ticksPerSecond)}">
       {metrics.ticks}/{metrics.expectedTPS || budget.ticksPerSecond}
     </span>
   </div>

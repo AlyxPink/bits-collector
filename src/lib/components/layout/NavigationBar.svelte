@@ -22,6 +22,14 @@
 
   let { onSettingsClick }: Props = $props();
 
+  // Format numbers with thousand separators for better readability
+  function formatNumber(value: number): string {
+    if (value >= 100000) {
+      return value.toLocaleString('en-US');
+    }
+    return Math.floor(value).toString();
+  }
+
   // Get dynamic styling based on lux amount
   function getLuxStyling(total: number, intensity: number) {
     const baseClasses =
@@ -68,7 +76,7 @@
             ></div>
             <span
               class="font-bold text-yellow-300 text-sm min-w-[2rem] text-right"
-              >{Math.floor($lumen.total)}</span
+              >{formatNumber($lumen.total)}</span
             >
           </div>
         </div>
@@ -80,7 +88,7 @@
               class="w-2 h-2 bg-red-500 rounded-full shadow-lg shadow-red-500/50"
             ></div>
             <span class="font-bold text-white text-sm min-w-[1.5rem] text-right"
-              >{$pixels.red}</span
+              >{formatNumber($pixels.red)}</span
             >
           </div>
 
@@ -89,7 +97,7 @@
               class="w-2 h-2 bg-green-500 rounded-full shadow-lg shadow-green-500/50"
             ></div>
             <span class="font-bold text-white text-sm min-w-[1.5rem] text-right"
-              >{$pixels.green}</span
+              >{formatNumber($pixels.green)}</span
             >
           </div>
 
@@ -98,7 +106,7 @@
               class="w-2 h-2 bg-blue-500 rounded-full shadow-lg shadow-blue-500/50"
             ></div>
             <span class="font-bold text-white text-sm min-w-[1.5rem] text-right"
-              >{$pixels.blue}</span
+              >{formatNumber($pixels.blue)}</span
             >
           </div>
 
@@ -110,7 +118,7 @@
             ></div>
             <span
               class="font-bold text-white text-base min-w-[1.5rem] text-right"
-              >{$pixels.white}</span
+              >{formatNumber($pixels.white)}</span
             >
           </div>
         </div>
@@ -129,7 +137,7 @@
                   ></div>
                   <span
                     class="font-bold text-white text-sm min-w-[1.5rem] text-right"
-                    >{color.count}</span
+                    >{formatNumber(color.count)}</span
                   >
                 </div>
               {/each}
@@ -151,7 +159,7 @@
                   ></div>
                   <span
                     class="font-bold text-white text-sm min-w-[1.5rem] text-right"
-                    >{color.count}</span
+                    >{formatNumber(color.count)}</span
                   >
                 </div>
               {/each}

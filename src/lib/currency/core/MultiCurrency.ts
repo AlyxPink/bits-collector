@@ -8,6 +8,7 @@
 import { writable, derived, get, type Writable } from "svelte/store";
 import type { ICurrency, CurrencyConfig, CurrencyType } from "./interfaces";
 import { PERFORMANCE_MODE } from "$lib/config/gameConfig";
+import { performanceMonitor } from "$lib/utils/performanceMonitor";
 
 export interface MultiCurrencyConfig<T> extends CurrencyConfig<T> {
 	// Optional conversion mechanics
@@ -160,15 +161,18 @@ export abstract class MultiCurrencyBase<T> implements ICurrency {
 
 	protected updateState(updater: (state: T) => T): void {
 		this.store.update(updater);
+		performanceMonitor.trackStoreUpdate();
 	}
 
 	protected setState(newState: T): void {
 		this.store.set(newState);
+		performanceMonitor.trackStoreUpdate();
 	}
 
 	// Expose the update method for compatibility with existing code
 	update(updater: (state: T) => T): void {
 		this.store.update(updater);
+		performanceMonitor.trackStoreUpdate();
 	}
 
 	// Abstract methods for subclasses to implement

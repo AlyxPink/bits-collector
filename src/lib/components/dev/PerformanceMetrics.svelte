@@ -122,12 +122,4 @@ function getModeEmoji(mode: string): string {
       {metrics.storeUpdates}/{budget.storeUpdatesPerSecond}
     </span>
   </div>
-
-  <!-- Derived Recalculations -->
-  <div class="flex justify-between gap-4">
-    <span class="text-gray-400">Derived/s:</span>
-    <span class="{getMetricColor(metrics.derivedRecalcs, budget.derivedRecalcsPerSecond)}">
-      {metrics.derivedRecalcs}/{budget.derivedRecalcsPerSecond}
-    </span>
-  </div>
 </div>

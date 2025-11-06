@@ -12,7 +12,9 @@ import {
 	MIXED_COLOR_UNLOCK_ORDER,
 	PURE_COLOR_UNLOCK_ORDER,
 	calculateMixedColorUnlockCost,
-	calculatePureColorUnlockCost
+	calculatePureColorUnlockCost,
+	PURE_COLOR_BOOST,
+	PURE_COLOR_MILESTONES
 } from "$lib/config/gameConfig";
 
 // ============================================================================
@@ -298,15 +300,12 @@ function createCompositeColorsCurrency() {
 
 			if (pureCount === 0) return 1;
 
-			// Import config for pure color boost calculations
-			const { PURE_COLOR_BOOST, PURE_COLOR_MILESTONES } = require("$lib/config/gameConfig");
-
 			// Layer 1: Base logarithmic growth
 			const baseBoost = Math.pow(pureCount, PURE_COLOR_BOOST.baseBoostPower) * PURE_COLOR_BOOST.baseBoostMultiplier;
 
 			// Layer 2: Milestone bonuses
-			const milestones = PURE_COLOR_MILESTONES;
-			const milestoneBonus = milestones.filter((m: number) => pureCount >= m).length * PURE_COLOR_BOOST.milestoneBonus;
+			const milestones = PURE_COLOR_MILESTONES.thresholds;
+			const milestoneBonus = milestones.filter((m: number) => pureCount >= m).length * PURE_COLOR_MILESTONES.bonusPerMilestone;
 
 			// Layer 3: Diminishing returns after certain thresholds
 			let effectiveCount = pureCount;
@@ -317,12 +316,12 @@ function createCompositeColorsCurrency() {
 			const hasAllPure = compositeColors.hasAllPureColors();
 			const synergyBonus = hasAllPure ? Math.log10(pureCount + 1) * PURE_COLOR_BOOST.synergyMultiplier : 0;
 
-			const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * PURE_COLOR_BOOST.effectiveCountMultiplier) + synergyBonus;
+			const rawMultiplier = 1 + baseBoost + milestoneBonus + (effectiveCount * 0.01) + synergyBonus;
 
 			// Apply smooth soft cap
-			if (rawMultiplier > PURE_COLOR_BOOST.softCaps.third) return PURE_COLOR_BOOST.softCaps.thirdBase + Math.pow(rawMultiplier - PURE_COLOR_BOOST.softCaps.third, PURE_COLOR_BOOST.softCaps.thirdPower);
-			if (rawMultiplier > PURE_COLOR_BOOST.softCaps.second) return PURE_COLOR_BOOST.softCaps.secondBase + Math.pow(rawMultiplier - PURE_COLOR_BOOST.softCaps.second, PURE_COLOR_BOOST.softCaps.secondPower);
-			if (rawMultiplier > PURE_COLOR_BOOST.softCaps.first) return PURE_COLOR_BOOST.softCaps.first + Math.pow(rawMultiplier - PURE_COLOR_BOOST.softCaps.first, PURE_COLOR_BOOST.softCaps.firstPower);
+			if (rawMultiplier > PURE_COLOR_BOOST.capThresholds.hard) return 18 + Math.pow(rawMultiplier - PURE_COLOR_BOOST.capThresholds.hard, PURE_COLOR_BOOST.capPowers.hard);
+			if (rawMultiplier > PURE_COLOR_BOOST.capThresholds.medium) return 9 + Math.pow(rawMultiplier - PURE_COLOR_BOOST.capThresholds.medium, PURE_COLOR_BOOST.capPowers.medium);
+			if (rawMultiplier > PURE_COLOR_BOOST.capThresholds.soft) return 5 + Math.pow(rawMultiplier - PURE_COLOR_BOOST.capThresholds.soft, PURE_COLOR_BOOST.capPowers.soft);
 
 			return rawMultiplier;
 		},
@@ -342,9 +341,6 @@ function createCompositeColorsCurrency() {
 			const avgCount = totalCount / 3;
 
 			if (totalCount === 0) return 1;
-
-			// Import config for calculations
-			const { PURE_COLOR_BOOST } = require("$lib/config/gameConfig");
 
 			// Balanced bonus
 			const balance = Math.min(redCount, greenCount, blueCount) / Math.max(redCount, greenCount, blueCount, 1);

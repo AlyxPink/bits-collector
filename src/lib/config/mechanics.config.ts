@@ -47,6 +47,11 @@ export const PURE_COLOR_BOOST = {
 		soft: 0.7,
 		medium: 0.5,
 		hard: 0.3,
+	},
+	randomGenerator: {
+		balanceBonus: 0.5,              // Bonus for balanced RGB counts
+		baseMultiplierPerCount: 0.01,   // Multiplier per average pure color count
+		synergyMultiplier: 0.3,         // Log10 synergy bonus for having all colors
 	}
 };
 

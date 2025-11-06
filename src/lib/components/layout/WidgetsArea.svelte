@@ -1,6 +1,5 @@
 <script lang="ts">
 import GeneratorIndicator from "$lib/components/upgrades/GeneratorIndicator.svelte";
-import PixelStream from "$lib/components/effects/PixelStream.svelte";
 import GameStatsWidget from "$lib/components/stats/GameStatsWidget.svelte";
 </script>
 
@@ -20,15 +19,7 @@ import GameStatsWidget from "$lib/components/stats/GameStatsWidget.svelte";
     </h3>
     <GeneratorIndicator />
   </div>
-  
-  <!-- Pixel Stream Widget -->
-  <div class="bg-black/30 rounded-lg p-4 border border-green-500/30">
-    <h3 class="text-sm font-bold uppercase tracking-wider text-yellow-400 mb-3 text-center">
-      Pixel Stream
-    </h3>
-    <PixelStream />
-  </div>
-  
+
   <!-- Game Stats Widget -->
   <div class="bg-black/30 rounded-lg p-4 border border-cyan-500/30">
     <h3 class="text-sm font-bold uppercase tracking-wider text-cyan-400 mb-3 text-center">

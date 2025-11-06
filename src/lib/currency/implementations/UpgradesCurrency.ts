@@ -947,7 +947,6 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 			} else {
 				// Normal mode: batch pixels for performance (single store update per tick)
 				const normalModeBulkPixels = { red: 0, green: 0, blue: 0 };
-				const streamPixels: ("red" | "green" | "blue")[] = [];
 
 				Object.values(state.generators).forEach((generator) => {
 					if (generator.owned && generator.level > 0) {
@@ -991,16 +990,11 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 								for (let i = 0; i < bitsToAdd; i++) {
 									const randomColor = colors[Math.floor(Math.random() * 3)];
 									normalModeBulkPixels[randomColor]++;
-									streamPixels.push(randomColor);
 								}
 							} else {
 								// Specific color - batch count
 								const color = generator.color as "red" | "green" | "blue";
 								normalModeBulkPixels[color] += bitsToAdd;
-								// Build stream array for visualization
-								for (let i = 0; i < bitsToAdd; i++) {
-									streamPixels.push(color);
-								}
 							}
 						}
 					}
@@ -1009,11 +1003,6 @@ class UpgradesCurrency extends MultiCurrencyBase<UpgradeState> {
 				// Single bulk update for all pixels from all generators
 				if (normalModeBulkPixels.red > 0 || normalModeBulkPixels.green > 0 || normalModeBulkPixels.blue > 0) {
 					pixels.addPixelsBulk(normalModeBulkPixels);
-				}
-
-				// Add all pixels to stream visualization in one batch (only if stream is visible)
-				if (streamPixels.length > 0 && pixelStreamAnimation.isRunning()) {
-					pixelStream.addPixels(streamPixels);
 				}
 			}
 
